@@ -115,7 +115,7 @@ class KwtSMS {
     /**
      * Send SMS through the gateway with full pipeline: validation, normalization, coverage check, logging.
      */
-    public function send($phone, string $message, string $eventType, ?int $orderId = null): array {
+    public function send(string|array $phone, string $message, string $eventType, ?int $orderId = null): array {
         // 1. Check if extension is enabled
         if (!$this->isEnabled()) {
             $this->debugLog('info', 'send', 'Extension is disabled, skipping send');
@@ -249,7 +249,9 @@ class KwtSMS {
 
         // 10. Bulk or single send
         if (count($normalized) > 200) {
-            return $this->bulkSend($normalized, $cleanedMessage, $batchId, $eventType, $orderId);
+            $result = $this->bulkSend($normalized, $cleanedMessage, $batchId, $eventType, $orderId);
+            $result['skipped'] += $skipped;
+            return $result;
         }
 
         // 11. Single API call
@@ -461,7 +463,8 @@ class KwtSMS {
      * Check if API credentials are configured.
      */
     public function isConfigured(): bool {
-        return !empty($this->config->get('module_kwtsms_username'));
+        return !empty($this->config->get('module_kwtsms_username'))
+            && !empty($this->config->get('module_kwtsms_password'));
     }
 
     /**
@@ -588,6 +591,22 @@ class KwtSMS {
     }
 
     /**
+     * Recursively mask sensitive keys (password, username) in an array.
+     */
+    private function maskCredentials(array $data): array {
+        $sensitiveKeys = ['password', 'username'];
+        foreach ($data as $key => &$value) {
+            if (is_array($value)) {
+                $value = $this->maskCredentials($value);
+            } elseif (is_string($key) && in_array(strtolower($key), $sensitiveKeys)) {
+                $value = '***';
+            }
+        }
+        unset($value);
+        return $data;
+    }
+
+    /**
      * Log a debug entry to the kwtsms_debug_log table.
      * Errors are always logged. Other levels require debug mode to be enabled.
      */
@@ -598,12 +617,7 @@ class KwtSMS {
 
         // Mask credentials in data
         if ($data !== null) {
-            if (isset($data['password'])) {
-                $data['password'] = '***';
-            }
-            if (isset($data['result']['password'])) {
-                $data['result']['password'] = '***';
-            }
+            $data = $this->maskCredentials($data);
         }
 
         $dataJson = $data !== null ? json_encode($data) : '';

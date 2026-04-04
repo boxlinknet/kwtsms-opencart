@@ -38,7 +38,7 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         // 6. Load Composer autoloader and instantiate library
         require_once(DIR_EXTENSION . 'kwtsms/vendor/autoload.php');
 
-        $library = new \Opencart\System\Extension\Kwtsms\Library\KwtSMS($this->registry);
+        $library = new \Opencart\System\Library\Extension\Kwtsms\Kwtsms($this->registry);
 
         // 7. Determine template language from order's language
         $languageCode = $this->model_extension_kwtsms_module_kwtsms->getOrderLanguageCode((int)$orderData['language_id']);

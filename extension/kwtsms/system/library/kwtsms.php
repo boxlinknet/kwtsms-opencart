@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\System\Extension\Kwtsms\Library;
+namespace Opencart\System\Library\Extension\Kwtsms;
 
 use KwtSMS\KwtSMS as KwtSMSClient;
 use KwtSMS\PhoneUtils;
 use KwtSMS\MessageUtils;
 
-class KwtSMS {
+class Kwtsms {
     private object $db;
     private object $config;
     private \Opencart\System\Engine\Registry $registry;
@@ -425,10 +425,16 @@ class KwtSMS {
             return '';
         }
 
-        // Check if the number already starts with a known country prefix
+        // Check if the number starts with a country prefix that is in our coverage
         $countryCode = PhoneUtils::find_country_code($normalized);
-        if ($countryCode === null) {
-            // Prepend default country code
+        $coverage = $this->getCoverage();
+        $coveredPrefixes = is_array($coverage) ? $coverage : [];
+
+        // If no country code found, or the detected country is not in our coverage,
+        // treat it as a local number and prepend the default country code.
+        // This handles cases like "98765432" (Kuwait local) which would otherwise
+        // be misidentified as Iran (country code 98).
+        if ($countryCode === null || !in_array($countryCode, $coveredPrefixes)) {
             $defaultCode = $this->config->get('module_kwtsms_country_code');
             if (empty($defaultCode)) {
                 $defaultCode = '965';

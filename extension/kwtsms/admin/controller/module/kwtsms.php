@@ -137,7 +137,7 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
 
         // 4. Register daily cron task
         $this->load->model('setting/cron');
-        $this->model_setting_cron->addCron('kwtsms_sync', 'extension/kwtsms/module/kwtsms.cron', 'day', 1);
+        $this->model_setting_cron->addCron('kwtsms_sync', 'kwtSMS: Daily sync of balance, sender IDs, and coverage', 'day', 'extension/kwtsms/module/kwtsms.cron', true);
 
         // 5. Set default settings
         $defaults = [
@@ -192,7 +192,7 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         }
 
         require_once(DIR_EXTENSION . 'kwtsms/vendor/autoload.php');
-        $library = new \Opencart\System\Extension\Kwtsms\Library\KwtSMS($this->registry);
+        $library = new \Opencart\System\Library\Extension\Kwtsms\Kwtsms($this->registry);
         $library->reload();
     }
 

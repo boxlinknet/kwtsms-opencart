@@ -668,6 +668,21 @@ $(document).ready(function() {
   }
 
   // ---------------------------------------------------------------
+  // URL declarations (decode &amp; from Twig auto-escaping)
+  // ---------------------------------------------------------------
+  function decodeUrl(s) { return s.replace(/&amp;/g, '&'); }
+  var URL_SAVE             = decodeUrl('{{ save }}');
+  var URL_GATEWAY_LOGIN    = decodeUrl('{{ gateway_login_url }}');
+  var URL_GATEWAY_LOGOUT   = decodeUrl('{{ gateway_logout_url }}');
+  var URL_GATEWAY_RELOAD   = decodeUrl('{{ gateway_reload_url }}');
+  var URL_GATEWAY_SAVE     = decodeUrl('{{ gateway_save_url }}');
+  var URL_GATEWAY_TEST     = decodeUrl('{{ gateway_test_url }}');
+  var URL_SMS_LOG          = decodeUrl('{{ sms_log_url }}');
+  var URL_DEBUG_LOG        = decodeUrl('{{ debug_log_url }}');
+  var URL_CLEAR_SMS_LOG    = decodeUrl('{{ clear_sms_log_url }}');
+  var URL_CLEAR_DEBUG_LOG  = decodeUrl('{{ clear_debug_log_url }}');
+
+  // ---------------------------------------------------------------
   // Tab persistence via URL hash
   // ---------------------------------------------------------------
   var hash = window.location.hash;
@@ -703,7 +718,7 @@ $(document).ready(function() {
     formData += '&' + $('[name="module_kwtsms_template_admin_problem_en"]').serialize();
 
     $.ajax({
-      url: '{{ save }}',
+      url: URL_SAVE,
       type: 'POST',
       dataType: 'json',
       data: formData,
@@ -731,7 +746,7 @@ $(document).ready(function() {
     btn.prop('disabled', true);
 
     $.ajax({
-      url: '{{ gateway_login_url }}',
+      url: URL_GATEWAY_LOGIN,
       type: 'POST',
       dataType: 'json',
       data: {
@@ -775,7 +790,7 @@ $(document).ready(function() {
     btn.prop('disabled', true);
 
     $.ajax({
-      url: '{{ gateway_logout_url }}',
+      url: URL_GATEWAY_LOGOUT,
       type: 'POST',
       dataType: 'json',
       success: function(json) {
@@ -811,7 +826,7 @@ $(document).ready(function() {
     btn.prop('disabled', true);
 
     $.ajax({
-      url: '{{ gateway_reload_url }}',
+      url: URL_GATEWAY_RELOAD,
       type: 'POST',
       dataType: 'json',
       success: function(json) {
@@ -845,7 +860,7 @@ $(document).ready(function() {
     btn.prop('disabled', true);
 
     $.ajax({
-      url: '{{ gateway_save_url }}',
+      url: URL_GATEWAY_SAVE,
       type: 'POST',
       dataType: 'json',
       data: {
@@ -879,7 +894,7 @@ $(document).ready(function() {
     btn.prop('disabled', true);
 
     $.ajax({
-      url: '{{ gateway_test_url }}',
+      url: URL_GATEWAY_TEST,
       type: 'POST',
       dataType: 'json',
       data: {
@@ -915,7 +930,7 @@ $(document).ready(function() {
     };
 
     $.ajax({
-      url: '{{ sms_log_url }}',
+      url: URL_SMS_LOG,
       type: 'GET',
       dataType: 'json',
       data: params,
@@ -991,7 +1006,7 @@ $(document).ready(function() {
     };
 
     $.ajax({
-      url: '{{ debug_log_url }}',
+      url: URL_DEBUG_LOG,
       type: 'GET',
       dataType: 'json',
       data: params,
@@ -1057,7 +1072,7 @@ $(document).ready(function() {
     btn.prop('disabled', true);
 
     $.ajax({
-      url: '{{ clear_sms_log_url }}',
+      url: URL_CLEAR_SMS_LOG,
       type: 'POST',
       dataType: 'json',
       success: function(json) {
@@ -1088,7 +1103,7 @@ $(document).ready(function() {
     btn.prop('disabled', true);
 
     $.ajax({
-      url: '{{ clear_debug_log_url }}',
+      url: URL_CLEAR_DEBUG_LOG,
       type: 'POST',
       dataType: 'json',
       success: function(json) {

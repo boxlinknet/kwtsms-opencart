@@ -32,7 +32,7 @@ class KwtsmsGateway extends \Opencart\System\Engine\Controller {
 
         require_once(DIR_EXTENSION . 'kwtsms/vendor/autoload.php');
 
-        $kwtsms = new \Opencart\System\Extension\Kwtsms\Library\KwtSMS($this->registry);
+        $kwtsms = new \Opencart\System\Library\Extension\Kwtsms\Kwtsms($this->registry);
         $result = $kwtsms->login($username, $password);
 
         if (!empty($result['success'])) {
@@ -73,7 +73,7 @@ class KwtsmsGateway extends \Opencart\System\Engine\Controller {
 
         require_once(DIR_EXTENSION . 'kwtsms/vendor/autoload.php');
 
-        $kwtsms = new \Opencart\System\Extension\Kwtsms\Library\KwtSMS($this->registry);
+        $kwtsms = new \Opencart\System\Library\Extension\Kwtsms\Kwtsms($this->registry);
         $kwtsms->logout();
 
         $this->load->model('setting/setting');
@@ -115,7 +115,7 @@ class KwtsmsGateway extends \Opencart\System\Engine\Controller {
 
         require_once(DIR_EXTENSION . 'kwtsms/vendor/autoload.php');
 
-        $kwtsms = new \Opencart\System\Extension\Kwtsms\Library\KwtSMS($this->registry);
+        $kwtsms = new \Opencart\System\Library\Extension\Kwtsms\Kwtsms($this->registry);
         $result = $kwtsms->reload();
 
         if (!empty($result['success'])) {
@@ -169,7 +169,7 @@ class KwtsmsGateway extends \Opencart\System\Engine\Controller {
 
         require_once(DIR_EXTENSION . 'kwtsms/vendor/autoload.php');
 
-        $kwtsms = new \Opencart\System\Extension\Kwtsms\Library\KwtSMS($this->registry);
+        $kwtsms = new \Opencart\System\Library\Extension\Kwtsms\Kwtsms($this->registry);
         $result = $kwtsms->testGateway($phone, $message);
 
         if (!empty($result['success'])) {

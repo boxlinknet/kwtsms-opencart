@@ -43,7 +43,7 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $data['gateway_logout_url'] = $this->url->link('extension/kwtsms/module/kwtsms_gateway.logout', 'user_token=' . $this->session->data['user_token']);
         $data['gateway_reload_url'] = $this->url->link('extension/kwtsms/module/kwtsms_gateway.reload', 'user_token=' . $this->session->data['user_token']);
         $data['gateway_test_url'] = $this->url->link('extension/kwtsms/module/kwtsms_gateway.test', 'user_token=' . $this->session->data['user_token']);
-        $data['gateway_save_url'] = $this->url->link('extension/kwtsms/module/kwtsms_gateway.save', 'user_token=' . $this->session->data['user_token']);
+        $data['gateway_save_url'] = $this->url->link('extension/kwtsms/module/kwtsms_gateway.savesettings', 'user_token=' . $this->session->data['user_token']);
         $data['sms_log_url'] = $this->url->link('extension/kwtsms/module/kwtsms_log.smsLog', 'user_token=' . $this->session->data['user_token']);
         $data['debug_log_url'] = $this->url->link('extension/kwtsms/module/kwtsms_log.debugLog', 'user_token=' . $this->session->data['user_token']);
         $data['clear_sms_log_url'] = $this->url->link('extension/kwtsms/module/kwtsms_log.clearSmsLog', 'user_token=' . $this->session->data['user_token']);

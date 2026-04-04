@@ -1,0 +1,1242 @@
+{{ header }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="button" id="button-save" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> {{ button_save }}</button>
+        <a href="{{ back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i> {{ button_cancel }}</a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    <div id="kwtsms-alert" class=""></div>
+
+    <ul class="nav nav-tabs" id="kwtsms-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#tab-dashboard"><i class="fa-solid fa-gauge-high"></i> {{ tab_dashboard }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-settings"><i class="fa-solid fa-gear"></i> {{ tab_settings }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-gateway"><i class="fa-solid fa-tower-cell"></i> {{ tab_gateway }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-templates"><i class="fa-solid fa-file-lines"></i> {{ tab_templates }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-logs"><i class="fa-solid fa-list-check"></i> {{ tab_logs }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-help"><i class="fa-solid fa-circle-question"></i> {{ tab_help }}</a>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="kwtsms-tab-content">
+
+      {# ============================================================ #}
+      {# TAB 1: DASHBOARD                                             #}
+      {# ============================================================ #}
+      <div class="tab-pane fade show active" id="tab-dashboard">
+        <div class="row mt-3">
+          {# Today #}
+          <div class="col-lg-4 mb-3">
+            <div class="card">
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-calendar-day"></i> {{ text_today }}
+              </div>
+              <div class="card-body">
+                <span class="badge" style="background-color: #FFA200; color: #fff;" id="stat-today-sent">{{ text_sms_sent }}: {{ stats_today.sent }}</span>
+                <span class="badge bg-danger" id="stat-today-failed">{{ text_sms_failed }}: {{ stats_today.failed }}</span>
+                <span class="badge bg-secondary" id="stat-today-skipped">{{ text_sms_skipped }}: {{ stats_today.skipped }}</span>
+              </div>
+            </div>
+          </div>
+          {# 7 Days #}
+          <div class="col-lg-4 mb-3">
+            <div class="card">
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-calendar-week"></i> {{ text_7_days }}
+              </div>
+              <div class="card-body">
+                <span class="badge" style="background-color: #FFA200; color: #fff;" id="stat-7days-sent">{{ text_sms_sent }}: {{ stats_7days.sent }}</span>
+                <span class="badge bg-danger" id="stat-7days-failed">{{ text_sms_failed }}: {{ stats_7days.failed }}</span>
+                <span class="badge bg-secondary" id="stat-7days-skipped">{{ text_sms_skipped }}: {{ stats_7days.skipped }}</span>
+              </div>
+            </div>
+          </div>
+          {# 30 Days #}
+          <div class="col-lg-4 mb-3">
+            <div class="card">
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-calendar"></i> {{ text_30_days }}
+              </div>
+              <div class="card-body">
+                <span class="badge" style="background-color: #FFA200; color: #fff;" id="stat-30days-sent">{{ text_sms_sent }}: {{ stats_30days.sent }}</span>
+                <span class="badge bg-danger" id="stat-30days-failed">{{ text_sms_failed }}: {{ stats_30days.failed }}</span>
+                <span class="badge bg-secondary" id="stat-30days-skipped">{{ text_sms_skipped }}: {{ stats_30days.skipped }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Status indicators #}
+        <div class="row">
+          <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card text-center">
+              <div class="card-body p-2">
+                <small class="text-muted">{{ text_balance }}</small><br>
+                <strong id="dash-balance">{% if gateway_balance is not null %}{{ gateway_balance }} {{ text_credits }}{% else %}--{% endif %}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card text-center">
+              <div class="card-body p-2">
+                <small class="text-muted">{{ text_sender_id }}</small><br>
+                <strong id="dash-sender-id">{{ module_kwtsms_sender_id ? module_kwtsms_sender_id : '--' }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card text-center">
+              <div class="card-body p-2">
+                <small class="text-muted">{{ text_test_mode }}</small><br>
+                {% if module_kwtsms_test_mode %}
+                <span class="badge bg-warning text-dark" id="dash-test-mode">{{ text_on }}</span>
+                {% else %}
+                <span class="badge bg-success" id="dash-test-mode">{{ text_off }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card text-center">
+              <div class="card-body p-2">
+                <small class="text-muted">{{ text_gateway_status }}</small><br>
+                {% if gateway_configured %}
+                <span class="badge bg-success" id="dash-gateway">{{ text_connected }}</span>
+                {% else %}
+                <span class="badge bg-danger" id="dash-gateway">{{ text_disconnected }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card text-center">
+              <div class="card-body p-2">
+                <small class="text-muted">{{ text_global_status }}</small><br>
+                {% if module_kwtsms_status %}
+                <span class="badge bg-success" id="dash-enabled">{{ text_yes }}</span>
+                {% else %}
+                <span class="badge bg-secondary" id="dash-enabled">{{ text_no }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card text-center">
+              <div class="card-body p-2">
+                <small class="text-muted">{{ text_debug_status }}</small><br>
+                {% if module_kwtsms_debug %}
+                <span class="badge bg-warning text-dark" id="dash-debug">{{ text_on }}</span>
+                {% else %}
+                <span class="badge bg-success" id="dash-debug">{{ text_off }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ============================================================ #}
+      {# TAB 2: SETTINGS                                              #}
+      {# ============================================================ #}
+      <div class="tab-pane fade" id="tab-settings">
+        <div class="card mt-3">
+          <div class="card-header" style="background-color: #FFA200; color: #fff;">
+            <i class="fa-solid fa-gear"></i> {{ tab_settings }}
+          </div>
+          <div class="card-body">
+            <form id="form-settings">
+              {# Enable Extension #}
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">{{ entry_status }}</label>
+                <div class="col-sm-9">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_kwtsms_status" value="0">
+                    <input class="form-check-input" type="checkbox" name="module_kwtsms_status" value="1" id="input-status" {% if module_kwtsms_status %}checked{% endif %}>
+                  </div>
+                  <small class="form-text text-muted">{{ help_status }}</small>
+                </div>
+              </div>
+
+              {# Test Mode #}
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">{{ entry_test_mode }}</label>
+                <div class="col-sm-9">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_kwtsms_test_mode" value="0">
+                    <input class="form-check-input" type="checkbox" name="module_kwtsms_test_mode" value="1" id="input-test-mode" {% if module_kwtsms_test_mode %}checked{% endif %}>
+                  </div>
+                  <small class="form-text text-muted">{{ help_test_mode }}</small>
+                </div>
+              </div>
+
+              {# Admin Phone Numbers #}
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label" for="input-admin-phones">{{ entry_admin_phones }}</label>
+                <div class="col-sm-9">
+                  <input type="text" name="module_kwtsms_admin_phones" value="{{ module_kwtsms_admin_phones }}" id="input-admin-phones" class="form-control" placeholder="96598765432,96512345678">
+                  <small class="form-text text-muted">{{ help_admin_phones }}</small>
+                </div>
+              </div>
+
+              {# Customer Notification Statuses #}
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">{{ entry_customer_statuses }}</label>
+                <div class="col-sm-9">
+                  <small class="form-text text-muted mb-2 d-block">{{ help_customer_statuses }}</small>
+                  {% for order_status in order_statuses %}
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="module_kwtsms_customer_statuses[]" value="{{ order_status.order_status_id }}" id="input-customer-status-{{ order_status.order_status_id }}" {% if order_status.order_status_id in module_kwtsms_customer_statuses %}checked{% endif %}>
+                    <label class="form-check-label" for="input-customer-status-{{ order_status.order_status_id }}">{{ order_status.name }}</label>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              {# Admin Paid Order Statuses #}
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">{{ entry_admin_paid_statuses }}</label>
+                <div class="col-sm-9">
+                  <small class="form-text text-muted mb-2 d-block">{{ help_admin_paid_statuses }}</small>
+                  {% for order_status in order_statuses %}
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="module_kwtsms_admin_paid_statuses[]" value="{{ order_status.order_status_id }}" id="input-admin-paid-status-{{ order_status.order_status_id }}" {% if order_status.order_status_id in module_kwtsms_admin_paid_statuses %}checked{% endif %}>
+                    <label class="form-check-label" for="input-admin-paid-status-{{ order_status.order_status_id }}">{{ order_status.name }}</label>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              {# Admin Problem Statuses #}
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">{{ entry_admin_problem_statuses }}</label>
+                <div class="col-sm-9">
+                  <small class="form-text text-muted mb-2 d-block">{{ help_admin_problem_statuses }}</small>
+                  {% for order_status in order_statuses %}
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="module_kwtsms_admin_problem_statuses[]" value="{{ order_status.order_status_id }}" id="input-admin-problem-status-{{ order_status.order_status_id }}" {% if order_status.order_status_id in module_kwtsms_admin_problem_statuses %}checked{% endif %}>
+                    <label class="form-check-label" for="input-admin-problem-status-{{ order_status.order_status_id }}">{{ order_status.name }}</label>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {# ============================================================ #}
+      {# TAB 3: GATEWAY                                               #}
+      {# ============================================================ #}
+      <div class="tab-pane fade" id="tab-gateway">
+        <div class="row mt-3">
+          <div class="col-lg-6 mb-3">
+            {# Logged-out: Login form #}
+            <div class="card" id="gateway-login" {% if gateway_configured %}style="display:none;"{% endif %}>
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-right-to-bracket"></i> {{ text_login }}
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="input-gw-username" class="form-label">{{ entry_username }}</label>
+                  <input type="text" class="form-control" id="input-gw-username" autocomplete="off">
+                </div>
+                <div class="mb-3">
+                  <label for="input-gw-password" class="form-label">{{ entry_password }}</label>
+                  <input type="password" class="form-control" id="input-gw-password" autocomplete="off">
+                </div>
+                <button type="button" id="button-gateway-login" class="btn" style="background-color: #FFA200; color: #fff;">
+                  <i class="fa-solid fa-right-to-bracket"></i> {{ text_login }}
+                </button>
+              </div>
+            </div>
+
+            {# Logged-in: Connection info #}
+            <div class="card" id="gateway-connected" {% if not gateway_configured %}style="display:none;"{% endif %}>
+              <div class="card-header bg-success text-white">
+                <i class="fa-solid fa-link"></i> {{ text_connected }}
+              </div>
+              <div class="card-body">
+                <div class="mb-2">
+                  <strong>{{ text_balance }}:</strong>
+                  <span id="gw-balance">{% if gateway_balance is not null %}{{ gateway_balance }} {{ text_credits }}{% else %}--{% endif %}</span>
+                </div>
+                <div class="mb-2">
+                  <strong>{{ text_senderids }}:</strong>
+                  <span id="gw-senderids">
+                    {% if gateway_senderids %}
+                      {% for sid in gateway_senderids %}
+                      <span class="badge bg-secondary">{{ sid }}</span>
+                      {% endfor %}
+                    {% else %}
+                      {{ text_none }}
+                    {% endif %}
+                  </span>
+                </div>
+                <div class="mb-3">
+                  <strong>{{ text_coverage }}:</strong>
+                  <span id="gw-coverage">
+                    {% if gateway_coverage %}
+                      {% for country in gateway_coverage %}
+                      <span class="badge bg-info text-dark">{{ country }}</span>
+                      {% endfor %}
+                    {% else %}
+                      {{ text_none }}
+                    {% endif %}
+                  </span>
+                </div>
+                <button type="button" id="button-gateway-reload" class="btn btn-outline-primary me-2">
+                  <i class="fa-solid fa-rotate"></i> {{ text_reload }}
+                </button>
+                <button type="button" id="button-gateway-logout" class="btn btn-outline-danger">
+                  <i class="fa-solid fa-right-from-bracket"></i> {{ text_logout }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6 mb-3">
+            {# Gateway Settings #}
+            <div class="card mb-3">
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-sliders"></i> {{ tab_gateway }} {{ tab_settings }}
+              </div>
+              <div class="card-body">
+                <form id="form-gateway-settings">
+                  <div class="mb-3">
+                    <label for="input-sender-id" class="form-label">{{ entry_sender_id }}</label>
+                    <select name="sender_id" id="input-sender-id" class="form-select">
+                      {% if gateway_senderids %}
+                        {% for sid in gateway_senderids %}
+                        <option value="{{ sid }}" {% if sid == module_kwtsms_sender_id %}selected{% endif %}>{{ sid }}</option>
+                        {% endfor %}
+                      {% endif %}
+                      {% if not gateway_senderids or module_kwtsms_sender_id not in gateway_senderids %}
+                        <option value="{{ module_kwtsms_sender_id }}" selected>{{ module_kwtsms_sender_id }}</option>
+                      {% endif %}
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label for="input-country-code" class="form-label">{{ entry_country_code }}</label>
+                    <input type="text" name="country_code" value="{{ module_kwtsms_country_code }}" id="input-country-code" class="form-control" placeholder="965">
+                    <small class="form-text text-muted">{{ help_country_code }}</small>
+                  </div>
+                  <div class="mb-3">
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" name="debug" value="1" id="input-gw-debug" {% if module_kwtsms_debug %}checked{% endif %}>
+                      <label class="form-check-label" for="input-gw-debug">{{ entry_debug }}</label>
+                    </div>
+                    <small class="form-text text-muted">{{ help_debug }}</small>
+                  </div>
+                  <button type="button" id="button-gateway-save" class="btn" style="background-color: #FFA200; color: #fff;">
+                    <i class="fa-solid fa-floppy-disk"></i> {{ button_save }}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {# Test Gateway #}
+            <div class="card">
+              <div class="card-header" style="background-color: #79CCF2; color: #fff;">
+                <i class="fa-solid fa-vial"></i> {{ text_test_gateway }}
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="input-test-phone" class="form-label">{{ entry_test_phone }}</label>
+                  <input type="text" class="form-control" id="input-test-phone" placeholder="96598765432">
+                </div>
+                <div class="mb-3">
+                  <label for="input-test-message" class="form-label">{{ entry_test_message }}</label>
+                  <textarea class="form-control" id="input-test-message" rows="3">kwtSMS Gateway Test</textarea>
+                </div>
+                <button type="button" id="button-test-gateway" class="btn" style="background-color: #79CCF2; color: #fff;">
+                  <i class="fa-solid fa-paper-plane"></i> {{ text_send_test }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ============================================================ #}
+      {# TAB 4: TEMPLATES                                             #}
+      {# ============================================================ #}
+      <div class="tab-pane fade" id="tab-templates">
+        <div class="row mt-3">
+          {# Customer Order Status SMS #}
+          <div class="col-12 mb-3">
+            <div class="card">
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-message"></i> {{ text_template_customer_order }}
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="input-tpl-customer-order-en" class="form-label">{{ entry_template_en }}</label>
+                    <textarea name="module_kwtsms_template_customer_order_en" id="input-tpl-customer-order-en" class="form-control" rows="4">{{ module_kwtsms_template_customer_order_en }}</textarea>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="input-tpl-customer-order-ar" class="form-label">{{ entry_template_ar }}</label>
+                    <textarea name="module_kwtsms_template_customer_order_ar" id="input-tpl-customer-order-ar" class="form-control" rows="4" dir="rtl">{{ module_kwtsms_template_customer_order_ar }}</textarea>
+                  </div>
+                </div>
+                <small class="form-text text-muted"><strong>{{ text_placeholders }}:</strong> {{ text_placeholder_list }}</small>
+              </div>
+            </div>
+          </div>
+
+          {# Admin New Paid Order SMS #}
+          <div class="col-12 mb-3">
+            <div class="card">
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-money-check-dollar"></i> {{ text_template_admin_paid }}
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="input-tpl-admin-paid-en" class="form-label">{{ entry_template_en }}</label>
+                  <textarea name="module_kwtsms_template_admin_paid_en" id="input-tpl-admin-paid-en" class="form-control" rows="4">{{ module_kwtsms_template_admin_paid_en }}</textarea>
+                </div>
+                <small class="form-text text-muted"><strong>{{ text_placeholders }}:</strong> {{ text_placeholder_list }}</small>
+              </div>
+            </div>
+          </div>
+
+          {# Admin Problem Status SMS #}
+          <div class="col-12 mb-3">
+            <div class="card">
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-triangle-exclamation"></i> {{ text_template_admin_problem }}
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="input-tpl-admin-problem-en" class="form-label">{{ entry_template_en }}</label>
+                  <textarea name="module_kwtsms_template_admin_problem_en" id="input-tpl-admin-problem-en" class="form-control" rows="4">{{ module_kwtsms_template_admin_problem_en }}</textarea>
+                </div>
+                <small class="form-text text-muted"><strong>{{ text_placeholders }}:</strong> {{ text_placeholder_list }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ============================================================ #}
+      {# TAB 5: LOGS                                                  #}
+      {# ============================================================ #}
+      <div class="tab-pane fade" id="tab-logs">
+        <ul class="nav nav-pills mt-3 mb-3" id="log-subtabs">
+          <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="pill" href="#subtab-sms-log">{{ text_sms_log }}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="pill" href="#subtab-debug-log">{{ text_debug_log }}</a>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          {# SMS Log sub-tab #}
+          <div class="tab-pane fade show active" id="subtab-sms-log">
+            <div class="card">
+              <div class="card-header">
+                <div class="row g-2 align-items-end">
+                  <div class="col-auto">
+                    <label class="form-label mb-0">{{ column_status }}</label>
+                    <select id="sms-filter-status" class="form-select form-select-sm">
+                      <option value="">-- {{ text_filter }} --</option>
+                      <option value="sent">{{ text_sms_sent }}</option>
+                      <option value="failed">{{ text_sms_failed }}</option>
+                      <option value="skipped">{{ text_sms_skipped }}</option>
+                      <option value="queued">Queued</option>
+                    </select>
+                  </div>
+                  <div class="col-auto">
+                    <label class="form-label mb-0">{{ column_event_type }}</label>
+                    <select id="sms-filter-event" class="form-select form-select-sm">
+                      <option value="">-- {{ text_filter }} --</option>
+                      <option value="order_status_change">order_status_change</option>
+                      <option value="admin_new_order">admin_new_order</option>
+                      <option value="admin_problem_order">admin_problem_order</option>
+                      <option value="test_gateway">test_gateway</option>
+                    </select>
+                  </div>
+                  <div class="col-auto">
+                    <label class="form-label mb-0">{{ column_date }}</label>
+                    <input type="date" id="sms-filter-date-from" class="form-control form-control-sm">
+                  </div>
+                  <div class="col-auto">
+                    <label class="form-label mb-0">&nbsp;</label>
+                    <input type="date" id="sms-filter-date-to" class="form-control form-control-sm">
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" id="button-sms-filter" class="btn btn-sm" style="background-color: #FFA200; color: #fff;">
+                      <i class="fa-solid fa-filter"></i> {{ text_filter }}
+                    </button>
+                  </div>
+                  <div class="col-auto ms-auto">
+                    <button type="button" id="button-clear-sms-log" class="btn btn-sm btn-outline-danger">
+                      <i class="fa-solid fa-trash"></i> {{ text_clear_all }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-hover table-striped mb-0">
+                    <thead>
+                      <tr>
+                        <th>{{ column_date }}</th>
+                        <th>{{ column_recipient }}</th>
+                        <th>{{ column_status }}</th>
+                        <th>{{ column_event_type }}</th>
+                        <th>{{ column_order_id }}</th>
+                        <th>{{ column_msg_id }}</th>
+                        <th>{{ column_points }}</th>
+                        <th>{{ column_test_mode }}</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sms-log-body">
+                      <tr><td colspan="8" class="text-center">{{ text_no_results }}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="card-footer">
+                <nav id="sms-log-pagination" class="d-flex justify-content-center"></nav>
+              </div>
+            </div>
+          </div>
+
+          {# Debug Log sub-tab #}
+          <div class="tab-pane fade" id="subtab-debug-log">
+            <div class="card">
+              <div class="card-header">
+                <div class="row g-2 align-items-end">
+                  <div class="col-auto">
+                    <label class="form-label mb-0">{{ column_level }}</label>
+                    <select id="debug-filter-level" class="form-select form-select-sm">
+                      <option value="">-- {{ text_filter }} --</option>
+                      <option value="info">info</option>
+                      <option value="warning">warning</option>
+                      <option value="error">error</option>
+                    </select>
+                  </div>
+                  <div class="col-auto">
+                    <label class="form-label mb-0">{{ column_context }}</label>
+                    <select id="debug-filter-context" class="form-select form-select-sm">
+                      <option value="">-- {{ text_filter }} --</option>
+                      <option value="normalize">normalize</option>
+                      <option value="verify">verify</option>
+                      <option value="clean">clean</option>
+                      <option value="send">send</option>
+                      <option value="cron">cron</option>
+                      <option value="gateway">gateway</option>
+                    </select>
+                  </div>
+                  <div class="col-auto">
+                    <label class="form-label mb-0">{{ column_date }}</label>
+                    <input type="date" id="debug-filter-date-from" class="form-control form-control-sm">
+                  </div>
+                  <div class="col-auto">
+                    <label class="form-label mb-0">&nbsp;</label>
+                    <input type="date" id="debug-filter-date-to" class="form-control form-control-sm">
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" id="button-debug-filter" class="btn btn-sm" style="background-color: #FFA200; color: #fff;">
+                      <i class="fa-solid fa-filter"></i> {{ text_filter }}
+                    </button>
+                  </div>
+                  <div class="col-auto ms-auto">
+                    <button type="button" id="button-clear-debug-log" class="btn btn-sm btn-outline-danger">
+                      <i class="fa-solid fa-trash"></i> {{ text_clear_all }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-hover table-striped mb-0">
+                    <thead>
+                      <tr>
+                        <th>{{ column_date }}</th>
+                        <th>{{ column_level }}</th>
+                        <th>{{ column_context }}</th>
+                        <th>{{ column_message }}</th>
+                      </tr>
+                    </thead>
+                    <tbody id="debug-log-body">
+                      <tr><td colspan="4" class="text-center">{{ text_no_results }}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="card-footer">
+                <nav id="debug-log-pagination" class="d-flex justify-content-center"></nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ============================================================ #}
+      {# TAB 6: HELP                                                  #}
+      {# ============================================================ #}
+      <div class="tab-pane fade" id="tab-help">
+        <div class="card mt-3">
+          <div class="card-header" style="background-color: #FFA200; color: #fff;">
+            <i class="fa-solid fa-book-open"></i> {{ text_help_title }}
+          </div>
+          <div class="card-body">
+            <div class="mb-4">
+              <h5>{{ text_help_step1_title }}</h5>
+              <p>{{ text_help_step1_body }}</p>
+            </div>
+            <div class="mb-4">
+              <h5>{{ text_help_step2_title }}</h5>
+              <p>{{ text_help_step2_body }}</p>
+            </div>
+            <div class="mb-4">
+              <h5>{{ text_help_step3_title }}</h5>
+              <p>{{ text_help_step3_body }}</p>
+            </div>
+            <div class="mb-4">
+              <h5>{{ text_help_step4_title }}</h5>
+              <p>{{ text_help_step4_body }}</p>
+            </div>
+            <div class="mb-4">
+              <h5>{{ text_help_step5_title }}</h5>
+              <p>{{ text_help_step5_body }}</p>
+            </div>
+            <div class="mb-4">
+              <h5>{{ text_help_step6_title }}</h5>
+              <p>{{ text_help_step6_body }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-3 mb-3">
+          <div class="card-header" style="background-color: #79CCF2; color: #fff;">
+            <i class="fa-solid fa-link"></i> {{ text_help_links_title }}
+          </div>
+          <div class="card-body">
+            <ul class="list-unstyled mb-0">
+              <li class="mb-2"><a href="https://www.kwtsms.com/support.html" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-headset"></i> {{ text_help_link_support }}</a></li>
+              <li class="mb-2"><a href="https://www.kwtsms.com/faq_all.php" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-circle-question"></i> {{ text_help_link_faq }}</a></li>
+              <li class="mb-2"><a href="https://www.kwtsms.com/doc/KwtSMS.com_API_Documentation_v41.pdf" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-file-pdf"></i> {{ text_help_link_docs }}</a></li>
+              <li><a href="https://www.kwtsms.com/sender-id-help.html" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-id-badge"></i> {{ text_help_link_senderid }}</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>{# /tab-content #}
+  </div>{# /container-fluid #}
+</div>{# /content #}
+
+<script>
+$(document).ready(function() {
+  // ---------------------------------------------------------------
+  // Alert helper
+  // ---------------------------------------------------------------
+  function showAlert(type, message) {
+    var html = '<div class="alert alert-' + type + ' alert-dismissible fade show">';
+    html += message;
+    html += '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    html += '</div>';
+    $('#kwtsms-alert').html(html);
+    setTimeout(function() {
+      $('#kwtsms-alert .alert').alert('close');
+    }, 5000);
+  }
+
+  // ---------------------------------------------------------------
+  // Tab persistence via URL hash
+  // ---------------------------------------------------------------
+  var hash = window.location.hash;
+  if (hash) {
+    var tabLink = $('#kwtsms-tabs a[href="' + hash + '"]');
+    if (tabLink.length) {
+      var tab = new bootstrap.Tab(tabLink[0]);
+      tab.show();
+    }
+  }
+
+  $('#kwtsms-tabs a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
+    window.location.hash = $(e.target).attr('href');
+
+    // Auto-load log data when switching to logs tab
+    if ($(e.target).attr('href') === '#tab-logs') {
+      loadSmsLog(1);
+      loadDebugLog(1);
+    }
+  });
+
+  // ---------------------------------------------------------------
+  // 1. Save button (Settings + Templates tabs)
+  // ---------------------------------------------------------------
+  $('#button-save').on('click', function() {
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    var formData = $('#form-settings').serialize();
+    formData += '&' + $('[name="module_kwtsms_template_customer_order_en"]').serialize();
+    formData += '&' + $('[name="module_kwtsms_template_customer_order_ar"]').serialize();
+    formData += '&' + $('[name="module_kwtsms_template_admin_paid_en"]').serialize();
+    formData += '&' + $('[name="module_kwtsms_template_admin_problem_en"]').serialize();
+
+    $.ajax({
+      url: '{{ save }}',
+      type: 'POST',
+      dataType: 'json',
+      data: formData,
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          showAlert('danger', json.error);
+        }
+        if (json.success) {
+          showAlert('success', json.success);
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        showAlert('danger', 'An error occurred. Please try again.');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 2. Gateway Login
+  // ---------------------------------------------------------------
+  $('#button-gateway-login').on('click', function() {
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    $.ajax({
+      url: '{{ gateway_login_url }}',
+      type: 'POST',
+      dataType: 'json',
+      data: {
+        username: $('#input-gw-username').val(),
+        password: $('#input-gw-password').val()
+      },
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          showAlert('danger', json.error);
+        }
+        if (json.success) {
+          showAlert('success', json.success);
+          $('#gateway-login').hide();
+          $('#gateway-connected').show();
+
+          // Update connected state display
+          if (json.balance !== undefined && json.balance !== null) {
+            $('#gw-balance').text(json.balance + ' {{ text_credits }}');
+            $('#dash-balance').text(json.balance + ' {{ text_credits }}');
+          }
+          updateSenderIds(json.senderids);
+          updateCoverage(json.coverage);
+
+          // Update dashboard gateway badge
+          $('#dash-gateway').removeClass('bg-danger').addClass('bg-success').text('{{ text_connected }}');
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        showAlert('danger', 'An error occurred. Please try again.');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 3. Gateway Logout
+  // ---------------------------------------------------------------
+  $('#button-gateway-logout').on('click', function() {
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    $.ajax({
+      url: '{{ gateway_logout_url }}',
+      type: 'POST',
+      dataType: 'json',
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          showAlert('danger', json.error);
+        }
+        if (json.success) {
+          showAlert('success', json.success);
+          $('#gateway-connected').hide();
+          $('#gateway-login').show();
+          $('#input-gw-username').val('');
+          $('#input-gw-password').val('');
+
+          // Update dashboard
+          $('#gw-balance').text('--');
+          $('#dash-balance').text('--');
+          $('#dash-gateway').removeClass('bg-success').addClass('bg-danger').text('{{ text_disconnected }}');
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        showAlert('danger', 'An error occurred. Please try again.');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 4. Gateway Reload
+  // ---------------------------------------------------------------
+  $('#button-gateway-reload').on('click', function() {
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    $.ajax({
+      url: '{{ gateway_reload_url }}',
+      type: 'POST',
+      dataType: 'json',
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          showAlert('danger', json.error);
+        }
+        if (json.success) {
+          showAlert('success', json.success);
+
+          if (json.balance !== undefined && json.balance !== null) {
+            $('#gw-balance').text(json.balance + ' {{ text_credits }}');
+            $('#dash-balance').text(json.balance + ' {{ text_credits }}');
+          }
+          updateSenderIds(json.senderids);
+          updateCoverage(json.coverage);
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        showAlert('danger', 'An error occurred. Please try again.');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 5. Gateway Save Settings
+  // ---------------------------------------------------------------
+  $('#button-gateway-save').on('click', function() {
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    $.ajax({
+      url: '{{ gateway_save_url }}',
+      type: 'POST',
+      dataType: 'json',
+      data: {
+        sender_id: $('#input-sender-id').val(),
+        country_code: $('#input-country-code').val(),
+        debug: $('#input-gw-debug').is(':checked') ? 1 : 0
+      },
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          showAlert('danger', json.error);
+        }
+        if (json.success) {
+          showAlert('success', json.success);
+          // Update dashboard sender ID display
+          $('#dash-sender-id').text($('#input-sender-id').val());
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        showAlert('danger', 'An error occurred. Please try again.');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 6. Test Gateway
+  // ---------------------------------------------------------------
+  $('#button-test-gateway').on('click', function() {
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    $.ajax({
+      url: '{{ gateway_test_url }}',
+      type: 'POST',
+      dataType: 'json',
+      data: {
+        phone: $('#input-test-phone').val(),
+        message: $('#input-test-message').val()
+      },
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          showAlert('danger', json.error);
+        }
+        if (json.success) {
+          showAlert('success', json.success);
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        showAlert('danger', 'An error occurred. Please try again.');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 7. SMS Log loading
+  // ---------------------------------------------------------------
+  function loadSmsLog(page) {
+    var params = {
+      page: page || 1,
+      status: $('#sms-filter-status').val(),
+      event_type: $('#sms-filter-event').val(),
+      date_from: $('#sms-filter-date-from').val(),
+      date_to: $('#sms-filter-date-to').val()
+    };
+
+    $.ajax({
+      url: '{{ sms_log_url }}',
+      type: 'GET',
+      dataType: 'json',
+      data: params,
+      success: function(json) {
+        if (json.error) {
+          showAlert('danger', json.error);
+          return;
+        }
+
+        var tbody = $('#sms-log-body');
+        tbody.empty();
+
+        if (json.rows && json.rows.length > 0) {
+          $.each(json.rows, function(i, row) {
+            var statusBadge = '';
+            switch (row.status) {
+              case 'sent':
+                statusBadge = '<span class="badge" style="background-color:#FFA200;color:#fff;">sent</span>';
+                break;
+              case 'failed':
+                statusBadge = '<span class="badge bg-danger">failed</span>';
+                break;
+              case 'skipped':
+                statusBadge = '<span class="badge bg-secondary">skipped</span>';
+                break;
+              case 'queued':
+                statusBadge = '<span class="badge bg-info text-dark">queued</span>';
+                break;
+              default:
+                statusBadge = '<span class="badge bg-secondary">' + (row.status || '') + '</span>';
+            }
+            var testBadge = row.test_mode == 1 ? '<span class="badge bg-warning text-dark">{{ text_yes }}</span>' : '<span class="badge bg-light text-dark">{{ text_no }}</span>';
+
+            var tr = '<tr>';
+            tr += '<td>' + (row.created_at || '') + '</td>';
+            tr += '<td>' + (row.recipient || '') + '</td>';
+            tr += '<td>' + statusBadge + '</td>';
+            tr += '<td>' + (row.event_type || '') + '</td>';
+            tr += '<td>' + (row.order_id || '') + '</td>';
+            tr += '<td>' + (row.msg_id || '') + '</td>';
+            tr += '<td>' + (row.points_charged || '0') + '</td>';
+            tr += '<td>' + testBadge + '</td>';
+            tr += '</tr>';
+            tbody.append(tr);
+          });
+        } else {
+          tbody.html('<tr><td colspan="8" class="text-center">{{ text_no_results }}</td></tr>');
+        }
+
+        // Render pagination
+        renderPagination('#sms-log-pagination', json.page, json.pages, function(p) { loadSmsLog(p); });
+      },
+      error: function() {
+        showAlert('danger', 'Failed to load SMS log.');
+      }
+    });
+  }
+
+  $('#button-sms-filter').on('click', function() {
+    loadSmsLog(1);
+  });
+
+  // ---------------------------------------------------------------
+  // 8. Debug Log loading
+  // ---------------------------------------------------------------
+  function loadDebugLog(page) {
+    var params = {
+      page: page || 1,
+      level: $('#debug-filter-level').val(),
+      context: $('#debug-filter-context').val(),
+      date_from: $('#debug-filter-date-from').val(),
+      date_to: $('#debug-filter-date-to').val()
+    };
+
+    $.ajax({
+      url: '{{ debug_log_url }}',
+      type: 'GET',
+      dataType: 'json',
+      data: params,
+      success: function(json) {
+        if (json.error) {
+          showAlert('danger', json.error);
+          return;
+        }
+
+        var tbody = $('#debug-log-body');
+        tbody.empty();
+
+        if (json.rows && json.rows.length > 0) {
+          $.each(json.rows, function(i, row) {
+            var levelBadge = '';
+            switch (row.level) {
+              case 'info':
+                levelBadge = '<span class="badge bg-info text-dark">info</span>';
+                break;
+              case 'warning':
+                levelBadge = '<span class="badge bg-warning text-dark">warning</span>';
+                break;
+              case 'error':
+                levelBadge = '<span class="badge bg-danger">error</span>';
+                break;
+              default:
+                levelBadge = '<span class="badge bg-secondary">' + (row.level || '') + '</span>';
+            }
+
+            var tr = '<tr>';
+            tr += '<td>' + (row.created_at || '') + '</td>';
+            tr += '<td>' + levelBadge + '</td>';
+            tr += '<td>' + (row.context || '') + '</td>';
+            tr += '<td>' + (row.message || '') + '</td>';
+            tr += '</tr>';
+            tbody.append(tr);
+          });
+        } else {
+          tbody.html('<tr><td colspan="4" class="text-center">{{ text_no_results }}</td></tr>');
+        }
+
+        // Render pagination
+        renderPagination('#debug-log-pagination', json.page, json.pages, function(p) { loadDebugLog(p); });
+      },
+      error: function() {
+        showAlert('danger', 'Failed to load debug log.');
+      }
+    });
+  }
+
+  $('#button-debug-filter').on('click', function() {
+    loadDebugLog(1);
+  });
+
+  // ---------------------------------------------------------------
+  // 9. Clear SMS Log
+  // ---------------------------------------------------------------
+  $('#button-clear-sms-log').on('click', function() {
+    if (!confirm('{{ text_confirm_clear }}')) {
+      return;
+    }
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    $.ajax({
+      url: '{{ clear_sms_log_url }}',
+      type: 'POST',
+      dataType: 'json',
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          showAlert('danger', json.error);
+        }
+        if (json.success) {
+          showAlert('success', json.success);
+          loadSmsLog(1);
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        showAlert('danger', 'An error occurred. Please try again.');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 10. Clear Debug Log
+  // ---------------------------------------------------------------
+  $('#button-clear-debug-log').on('click', function() {
+    if (!confirm('{{ text_confirm_clear }}')) {
+      return;
+    }
+    var btn = $(this);
+    btn.prop('disabled', true);
+
+    $.ajax({
+      url: '{{ clear_debug_log_url }}',
+      type: 'POST',
+      dataType: 'json',
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          showAlert('danger', json.error);
+        }
+        if (json.success) {
+          showAlert('success', json.success);
+          loadDebugLog(1);
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        showAlert('danger', 'An error occurred. Please try again.');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 11. Pagination renderer
+  // ---------------------------------------------------------------
+  function renderPagination(selector, currentPage, totalPages, callback) {
+    var nav = $(selector);
+    nav.empty();
+
+    if (totalPages <= 1) {
+      return;
+    }
+
+    var ul = $('<ul class="pagination pagination-sm mb-0"></ul>');
+
+    // Previous
+    var prevLi = $('<li class="page-item' + (currentPage <= 1 ? ' disabled' : '') + '"></li>');
+    var prevA = $('<a class="page-link" href="#">&laquo;</a>');
+    prevA.on('click', function(e) {
+      e.preventDefault();
+      if (currentPage > 1) {
+        callback(currentPage - 1);
+      }
+    });
+    prevLi.append(prevA);
+    ul.append(prevLi);
+
+    // Page numbers (show max 7 pages with ellipsis)
+    var startPage = Math.max(1, currentPage - 3);
+    var endPage = Math.min(totalPages, currentPage + 3);
+
+    if (startPage > 1) {
+      ul.append('<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>');
+      if (startPage > 2) {
+        ul.append('<li class="page-item disabled"><span class="page-link">...</span></li>');
+      }
+    }
+
+    for (var p = startPage; p <= endPage; p++) {
+      var li = $('<li class="page-item' + (p === currentPage ? ' active' : '') + '"></li>');
+      var a = $('<a class="page-link" href="#">' + p + '</a>');
+      a.attr('data-page', p);
+      a.on('click', function(e) {
+        e.preventDefault();
+        callback(parseInt($(this).attr('data-page')));
+      });
+      li.append(a);
+      ul.append(li);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        ul.append('<li class="page-item disabled"><span class="page-link">...</span></li>');
+      }
+      ul.append('<li class="page-item"><a class="page-link" href="#" data-page="' + totalPages + '">' + totalPages + '</a></li>');
+    }
+
+    // Next
+    var nextLi = $('<li class="page-item' + (currentPage >= totalPages ? ' disabled' : '') + '"></li>');
+    var nextA = $('<a class="page-link" href="#">&raquo;</a>');
+    nextA.on('click', function(e) {
+      e.preventDefault();
+      if (currentPage < totalPages) {
+        callback(currentPage + 1);
+      }
+    });
+    nextLi.append(nextA);
+    ul.append(nextLi);
+
+    // Bind click for numbered pages added via html string
+    ul.find('a[data-page]').off('click').on('click', function(e) {
+      e.preventDefault();
+      callback(parseInt($(this).attr('data-page')));
+    });
+
+    nav.append(ul);
+  }
+
+  // ---------------------------------------------------------------
+  // 12. Helper: update sender IDs display + dropdown
+  // ---------------------------------------------------------------
+  function updateSenderIds(senderids) {
+    var html = '';
+    if (senderids && senderids.length > 0) {
+      $.each(senderids, function(i, sid) {
+        html += '<span class="badge bg-secondary">' + sid + '</span> ';
+      });
+      // Update the gateway settings dropdown
+      var select = $('#input-sender-id');
+      var currentVal = select.val();
+      select.empty();
+      $.each(senderids, function(i, sid) {
+        select.append('<option value="' + sid + '"' + (sid === currentVal ? ' selected' : '') + '>' + sid + '</option>');
+      });
+    } else {
+      html = '{{ text_none }}';
+    }
+    $('#gw-senderids').html(html);
+  }
+
+  // ---------------------------------------------------------------
+  // 13. Helper: update coverage display
+  // ---------------------------------------------------------------
+  function updateCoverage(coverage) {
+    var html = '';
+    if (coverage && coverage.length > 0) {
+      $.each(coverage, function(i, country) {
+        html += '<span class="badge bg-info text-dark">' + country + '</span> ';
+      });
+    } else {
+      html = '{{ text_none }}';
+    }
+    $('#gw-coverage').html(html);
+  }
+
+  // ---------------------------------------------------------------
+  // Load logs on initial page load if logs tab is active
+  // ---------------------------------------------------------------
+  if (hash === '#tab-logs') {
+    loadSmsLog(1);
+    loadDebugLog(1);
+  }
+
+  // Also load logs when clicking log sub-tabs
+  $('#log-subtabs a[data-bs-toggle="pill"]').on('shown.bs.tab', function(e) {
+    if ($(e.target).attr('href') === '#subtab-sms-log') {
+      loadSmsLog(1);
+    } else if ($(e.target).attr('href') === '#subtab-debug-log') {
+      loadDebugLog(1);
+    }
+  });
+});
+</script>
+{{ footer }}

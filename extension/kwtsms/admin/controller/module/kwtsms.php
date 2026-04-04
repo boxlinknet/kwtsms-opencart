@@ -135,7 +135,11 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/kwtsms/module/kwtsms_log');
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_log');
 
-        // 4. Set default settings
+        // 4. Register daily cron task
+        $this->load->model('setting/cron');
+        $this->model_setting_cron->addCron('kwtsms_sync', 'extension/kwtsms/module/kwtsms.cron', 'day', 1);
+
+        // 5. Set default settings
         $defaults = [
             'module_kwtsms_status'                         => 0,
             'module_kwtsms_test_mode'                      => 1,
@@ -169,9 +173,27 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $this->load->model('setting/event');
         $this->model_setting_event->deleteEventByCode('kwtsms_order_status');
 
-        // 3. Delete settings
+        // 3. Remove cron task
+        $this->load->model('setting/cron');
+        $this->model_setting_cron->deleteCronByCode('kwtsms_sync');
+
+        // 4. Delete settings
         $this->load->model('setting/setting');
         $this->model_setting_setting->deleteSetting('module_kwtsms');
+    }
+
+    /**
+     * Daily cron task: sync balance, sender IDs, and coverage from kwtSMS API.
+     * Called by OpenCart's cron system.
+     */
+    public function cron(): void {
+        if (empty($this->config->get('module_kwtsms_username')) || empty($this->config->get('module_kwtsms_password'))) {
+            return;
+        }
+
+        require_once(DIR_EXTENSION . 'kwtsms/vendor/autoload.php');
+        $library = new \Opencart\System\Extension\Kwtsms\Library\KwtSMS($this->registry);
+        $library->reload();
     }
 
     /**

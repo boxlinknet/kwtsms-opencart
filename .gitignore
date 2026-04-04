@@ -1,0 +1,42 @@
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+CLAUDE.md
+napkin.md
+.superpowers/
+.worktrees/
+
+# Documentation and test (local only)
+docs/
+test/
+tests/
+
+# Docker
+docker/
+docker-compose.yml
+docker-compose.override.yml
+
+# Environment
+.env
+.env.*
+
+# Playwright
+.playwright*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Archives
+*.zip
+
+# Remember
+.remember/

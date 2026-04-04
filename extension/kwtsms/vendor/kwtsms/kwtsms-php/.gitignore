@@ -1,0 +1,31 @@
+/vendor/
+/composer.lock
+/.phpunit.cache/
+/.php-cs-fixer.cache/
+.phpunit.result.cache
+
+# Credentials and logs, never commit these
+.env
+*.env
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local config and memory (not committed)
+CLAUDE.md
+.claude/
+
+# Internal docs and planning (local only)
+/docs/
+
+# Tests (local only)
+/tests/

@@ -1,0 +1,79 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "b09abd77785746c9b4e5e065ad88573e",
+    "packages": [
+        {
+            "name": "kwtsms/kwtsms-php",
+            "version": "v1.7.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/boxlinknet/kwtsms-php.git",
+                "reference": "132285b9f39bcfe33925dfbf9ea614026b87240a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/boxlinknet/kwtsms-php/zipball/132285b9f39bcfe33925dfbf9ea614026b87240a",
+                "reference": "132285b9f39bcfe33925dfbf9ea614026b87240a",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.65",
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^9.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "KwtSMS\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "M Alhassoun",
+                    "email": "maintainer@kwtsms.com",
+                    "homepage": "https://boxlink.net"
+                }
+            ],
+            "description": "kwtSMS API Client for PHP. Official library to interface with the Kuwait SMS gateway (kwtsms.com)",
+            "homepage": "https://github.com/boxlinknet/kwtsms-php",
+            "keywords": [
+                "kuwait",
+                "kwtsms",
+                "messaging",
+                "notification",
+                "otp",
+                "sms",
+                "sms-gateway"
+            ],
+            "support": {
+                "issues": "https://github.com/boxlinknet/kwtsms-php/issues",
+                "source": "https://github.com/boxlinknet/kwtsms-php"
+            },
+            "time": "2026-03-27T13:13:07+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.0"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

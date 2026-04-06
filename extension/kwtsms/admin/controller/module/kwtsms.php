@@ -90,11 +90,26 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $data['gateway_coverage']   = $this->model_extension_kwtsms_module_kwtsms_gateway->getCache('coverage');
         $data['gateway_configured'] = !empty($this->config->get('module_kwtsms_username')) && !empty($this->config->get('module_kwtsms_password'));
 
-        // Templates: current template values
-        $data['module_kwtsms_template_customer_order_en'] = $this->config->get('module_kwtsms_template_customer_order_en');
-        $data['module_kwtsms_template_customer_order_ar'] = $this->config->get('module_kwtsms_template_customer_order_ar');
-        $data['module_kwtsms_template_admin_paid_en']     = $this->config->get('module_kwtsms_template_admin_paid_en');
-        $data['module_kwtsms_template_admin_problem_en']  = $this->config->get('module_kwtsms_template_admin_problem_en');
+        // Templates from DB
+        $data['templates'] = $this->model_extension_kwtsms_module_kwtsms->getTemplates();
+
+        // Phase 2.1 settings
+        $data['module_kwtsms_low_stock_threshold'] = $this->config->get('module_kwtsms_low_stock_threshold') ?: 5;
+
+        $customerEventsJson = $this->config->get('module_kwtsms_customer_events');
+        $data['module_kwtsms_customer_events'] = !empty($customerEventsJson) ? json_decode($customerEventsJson, true) : [];
+        if (!is_array($data['module_kwtsms_customer_events'])) {
+            $data['module_kwtsms_customer_events'] = [];
+        }
+
+        $adminEventsJson = $this->config->get('module_kwtsms_admin_events');
+        $data['module_kwtsms_admin_events'] = !empty($adminEventsJson) ? json_decode($adminEventsJson, true) : [];
+        if (!is_array($data['module_kwtsms_admin_events'])) {
+            $data['module_kwtsms_admin_events'] = [];
+        }
+
+        // Reset template URL
+        $data['reset_template_url'] = $this->url->link('extension/kwtsms/module/kwtsms.resetTemplate', 'user_token=' . $this->session->data['user_token']);
 
         // Order statuses: full list from localisation model
         $data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
@@ -116,13 +131,58 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $this->load->model('extension/kwtsms/module/kwtsms');
         $this->model_extension_kwtsms_module_kwtsms->install();
 
-        // 2. Register event for order status change
+        // 2. Register events
         $this->load->model('setting/event');
         $this->model_setting_event->addEvent([
             'code'        => 'kwtsms_order_status',
             'description' => 'kwtSMS: Send SMS on order status change',
             'trigger'     => 'catalog/model/checkout/order/addHistory/after',
             'action'      => 'extension/kwtsms/module/kwtsms.orderStatusChange',
+            'status'      => 1,
+            'sort_order'  => 0,
+        ]);
+
+        $this->model_setting_event->addEvent([
+            'code'        => 'kwtsms_customer_register',
+            'description' => 'kwtSMS: Send welcome SMS on customer registration',
+            'trigger'     => 'catalog/model/account/customer/addCustomer/after',
+            'action'      => 'extension/kwtsms/module/kwtsms_customer.customerRegistered',
+            'status'      => 1,
+            'sort_order'  => 0,
+        ]);
+
+        $this->model_setting_event->addEvent([
+            'code'        => 'kwtsms_admin_new_customer',
+            'description' => 'kwtSMS: Admin alert on new customer registration',
+            'trigger'     => 'catalog/model/account/customer/addCustomer/after',
+            'action'      => 'extension/kwtsms/module/kwtsms_customer.adminNewCustomer',
+            'status'      => 1,
+            'sort_order'  => 1,
+        ]);
+
+        $this->model_setting_event->addEvent([
+            'code'        => 'kwtsms_low_stock',
+            'description' => 'kwtSMS: Check low stock after order',
+            'trigger'     => 'catalog/model/checkout/order/addHistory/after',
+            'action'      => 'extension/kwtsms/module/kwtsms_product.checkLowStock',
+            'status'      => 1,
+            'sort_order'  => 1,
+        ]);
+
+        $this->model_setting_event->addEvent([
+            'code'        => 'kwtsms_new_review',
+            'description' => 'kwtSMS: Admin alert on new product review',
+            'trigger'     => 'catalog/model/catalog/review/addReview/after',
+            'action'      => 'extension/kwtsms/module/kwtsms_product.reviewSubmitted',
+            'status'      => 1,
+            'sort_order'  => 0,
+        ]);
+
+        $this->model_setting_event->addEvent([
+            'code'        => 'kwtsms_return_request',
+            'description' => 'kwtSMS: Admin alert on return request',
+            'trigger'     => 'catalog/model/account/returns/addReturn/after',
+            'action'      => 'extension/kwtsms/module/kwtsms_return.returnRequested',
             'status'      => 1,
             'sort_order'  => 0,
         ]);
@@ -134,12 +194,22 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_gateway');
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/kwtsms/module/kwtsms_log');
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_log');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/kwtsms/module/kwtsms_customer');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_customer');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/kwtsms/module/kwtsms_product');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_product');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/kwtsms/module/kwtsms_return');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_return');
 
         // 4. Register daily cron task
         $this->load->model('setting/cron');
         $this->model_setting_cron->addCron('kwtsms_sync', 'kwtSMS: Daily sync of balance, sender IDs, and coverage', 'day', 'extension/kwtsms/module/kwtsms.cron', true);
 
-        // 5. Set default settings
+        // 5. Seed SMS templates into DB
+        $this->model_extension_kwtsms_module_kwtsms->seedTemplates();
+        $this->model_extension_kwtsms_module_kwtsms->seedPerStatusTemplates();
+
+        // 6. Set default settings
         $defaults = [
             'module_kwtsms_status'                         => 0,
             'module_kwtsms_test_mode'                      => 1,
@@ -154,6 +224,9 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             'module_kwtsms_template_customer_order_ar'     => '{customer_name} مرحبا، تم تحديث حالة طلبك رقم #{order_id} الى: {order_status}. شكرا لتسوقك في {store_name}.',
             'module_kwtsms_template_admin_paid_en'         => 'New paid order #{order_id} from {customer_name}. Total: {order_total}. Date: {date}.',
             'module_kwtsms_template_admin_problem_en'      => 'Order #{order_id} status changed to {order_status}. Customer: {customer_name}. Total: {order_total}.',
+            'module_kwtsms_low_stock_threshold'             => 5,
+            'module_kwtsms_customer_events'                 => '["customer_registered"]',
+            'module_kwtsms_admin_events'                    => '["admin_new_customer","low_stock","admin_new_review","admin_return_request"]',
         ];
 
         $this->load->model('setting/setting');
@@ -169,9 +242,14 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $this->load->model('extension/kwtsms/module/kwtsms');
         $this->model_extension_kwtsms_module_kwtsms->uninstall();
 
-        // 2. Delete event
+        // 2. Delete events
         $this->load->model('setting/event');
         $this->model_setting_event->deleteEventByCode('kwtsms_order_status');
+        $this->model_setting_event->deleteEventByCode('kwtsms_customer_register');
+        $this->model_setting_event->deleteEventByCode('kwtsms_admin_new_customer');
+        $this->model_setting_event->deleteEventByCode('kwtsms_low_stock');
+        $this->model_setting_event->deleteEventByCode('kwtsms_new_review');
+        $this->model_setting_event->deleteEventByCode('kwtsms_return_request');
 
         // 3. Remove cron task
         $this->load->model('setting/cron');
@@ -250,19 +328,19 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
                 $settings['module_kwtsms_admin_problem_statuses'] = '[]';
             }
 
-            // Template fields (sanitize with htmlspecialchars to prevent XSS, preserve placeholders)
-            $settings['module_kwtsms_template_customer_order_en'] = isset($this->request->post['module_kwtsms_template_customer_order_en'])
-                ? htmlspecialchars((string)$this->request->post['module_kwtsms_template_customer_order_en'], ENT_QUOTES, 'UTF-8')
-                : '';
-            $settings['module_kwtsms_template_customer_order_ar'] = isset($this->request->post['module_kwtsms_template_customer_order_ar'])
-                ? htmlspecialchars((string)$this->request->post['module_kwtsms_template_customer_order_ar'], ENT_QUOTES, 'UTF-8')
-                : '';
-            $settings['module_kwtsms_template_admin_paid_en'] = isset($this->request->post['module_kwtsms_template_admin_paid_en'])
-                ? htmlspecialchars((string)$this->request->post['module_kwtsms_template_admin_paid_en'], ENT_QUOTES, 'UTF-8')
-                : '';
-            $settings['module_kwtsms_template_admin_problem_en'] = isset($this->request->post['module_kwtsms_template_admin_problem_en'])
-                ? htmlspecialchars((string)$this->request->post['module_kwtsms_template_admin_problem_en'], ENT_QUOTES, 'UTF-8')
-                : '';
+            // Low stock threshold
+            $settings['module_kwtsms_low_stock_threshold'] = isset($this->request->post['module_kwtsms_low_stock_threshold'])
+                ? max(0, (int)$this->request->post['module_kwtsms_low_stock_threshold']) : 5;
+
+            // Customer events
+            $customerEvents = isset($this->request->post['module_kwtsms_customer_events'])
+                ? $this->request->post['module_kwtsms_customer_events'] : [];
+            $settings['module_kwtsms_customer_events'] = json_encode(is_array($customerEvents) ? $customerEvents : []);
+
+            // Admin events
+            $adminEvents = isset($this->request->post['module_kwtsms_admin_events'])
+                ? $this->request->post['module_kwtsms_admin_events'] : [];
+            $settings['module_kwtsms_admin_events'] = json_encode(is_array($adminEvents) ? $adminEvents : []);
 
             // Preserve gateway-managed settings that should not be overwritten
             $gatewayKeys = [
@@ -280,6 +358,16 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             }
 
             $this->model_setting_setting->editSetting('module_kwtsms', $settings);
+
+            // Save templates from POST
+            if (isset($this->request->post['templates']) && is_array($this->request->post['templates'])) {
+                $this->load->model('extension/kwtsms/module/kwtsms');
+                foreach ($this->request->post['templates'] as $id => $tpl) {
+                    $bodyEn = isset($tpl['body_en']) ? htmlspecialchars((string)$tpl['body_en'], ENT_QUOTES, 'UTF-8') : '';
+                    $bodyAr = isset($tpl['body_ar']) ? htmlspecialchars((string)$tpl['body_ar'], ENT_QUOTES, 'UTF-8') : '';
+                    $this->model_extension_kwtsms_module_kwtsms->updateTemplate((int)$id, $bodyEn, $bodyAr);
+                }
+            }
 
             $json['success'] = $this->language->get('text_success');
         }
@@ -331,6 +419,42 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             'debug'     => (int)$this->config->get('module_kwtsms_debug'),
             'sender_id' => $this->config->get('module_kwtsms_sender_id'),
         ];
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
+    /**
+     * Reset a single SMS template to its default body (AJAX, returns JSON).
+     */
+    public function resetTemplate(): void {
+        $this->load->language('extension/kwtsms/module/kwtsms');
+        $json = [];
+
+        if (!$this->user->hasPermission('modify', 'extension/kwtsms/module/kwtsms')) {
+            $json['error'] = $this->language->get('error_permission');
+        }
+
+        if (!$json) {
+            $templateId = isset($this->request->post['template_id']) ? (int)$this->request->post['template_id'] : 0;
+
+            if ($templateId > 0) {
+                $this->load->model('extension/kwtsms/module/kwtsms');
+                $this->model_extension_kwtsms_module_kwtsms->resetTemplate($templateId);
+
+                $json['success'] = $this->language->get('text_reset_success');
+
+                // Return the reset template body so JS can update the textareas
+                $templates = $this->model_extension_kwtsms_module_kwtsms->getTemplates();
+                foreach ($templates as $t) {
+                    if ((int)$t['id'] === $templateId) {
+                        $json['body_en'] = $t['body_en'];
+                        $json['body_ar'] = $t['body_ar'];
+                        break;
+                    }
+                }
+            }
+        }
 
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));

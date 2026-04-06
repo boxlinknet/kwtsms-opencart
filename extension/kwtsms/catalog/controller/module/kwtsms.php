@@ -48,11 +48,7 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             $customerStatuses = json_decode((string)$this->config->get('module_kwtsms_customer_statuses'), true);
 
             if (is_array($customerStatuses) && in_array($orderStatusId, $customerStatuses) && !empty($orderData['telephone'])) {
-                $template = $this->config->get('module_kwtsms_template_customer_order_' . $lang);
-
-                if (empty($template)) {
-                    $template = $this->config->get('module_kwtsms_template_customer_order_en');
-                }
+                $template = $this->model_extension_kwtsms_module_kwtsms->getOrderTemplate($orderStatusId, $lang);
 
                 if (!empty($template)) {
                     $message = $this->model_extension_kwtsms_module_kwtsms->replacePlaceholders($template, $orderData);
@@ -65,7 +61,7 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             $adminPaidStatuses = json_decode((string)$this->config->get('module_kwtsms_admin_paid_statuses'), true);
 
             if (is_array($adminPaidStatuses) && in_array($orderStatusId, $adminPaidStatuses) && !empty($adminPhones)) {
-                $template = $this->config->get('module_kwtsms_template_admin_paid_en');
+                $template = $this->model_extension_kwtsms_module_kwtsms->getTemplate('admin_new_order', 'en');
 
                 if (!empty($template)) {
                     $message = $this->model_extension_kwtsms_module_kwtsms->replacePlaceholders($template, $orderData);
@@ -77,7 +73,7 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             $adminProblemStatuses = json_decode((string)$this->config->get('module_kwtsms_admin_problem_statuses'), true);
 
             if (is_array($adminProblemStatuses) && in_array($orderStatusId, $adminProblemStatuses) && !empty($adminPhones)) {
-                $template = $this->config->get('module_kwtsms_template_admin_problem_en');
+                $template = $this->model_extension_kwtsms_module_kwtsms->getTemplate('admin_problem_order', 'en');
 
                 if (!empty($template)) {
                     $message = $this->model_extension_kwtsms_module_kwtsms->replacePlaceholders($template, $orderData);

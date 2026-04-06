@@ -240,6 +240,54 @@
                   {% endfor %}
                 </div>
               </div>
+
+              {# Low Stock Threshold #}
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label fw-bold">{{ entry_low_stock_threshold }}</label>
+                <div class="col-sm-9">
+                  <input type="number" name="module_kwtsms_low_stock_threshold" value="{{ module_kwtsms_low_stock_threshold }}" class="form-control" min="0" style="max-width: 120px;" />
+                  <small class="text-muted">{{ help_low_stock_threshold }}</small>
+                </div>
+              </div>
+
+              {# Customer Event Notifications #}
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label fw-bold">{{ entry_customer_events }}</label>
+                <div class="col-sm-9">
+                  <div class="form-check form-switch mb-1">
+                    <input type="checkbox" name="module_kwtsms_customer_events[]" value="customer_registered" class="form-check-input" id="event-customer-registered"
+                      {% if module_kwtsms_customer_events is iterable and 'customer_registered' in module_kwtsms_customer_events %}checked{% endif %} />
+                    <label class="form-check-label" for="event-customer-registered">{{ text_event_customer_registered }}</label>
+                  </div>
+                </div>
+              </div>
+
+              {# Admin Event Notifications #}
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label fw-bold">{{ entry_admin_events }}</label>
+                <div class="col-sm-9">
+                  <div class="form-check form-switch mb-1">
+                    <input type="checkbox" name="module_kwtsms_admin_events[]" value="admin_new_customer" class="form-check-input" id="event-admin-new-customer"
+                      {% if module_kwtsms_admin_events is iterable and 'admin_new_customer' in module_kwtsms_admin_events %}checked{% endif %} />
+                    <label class="form-check-label" for="event-admin-new-customer">{{ text_event_admin_new_customer }}</label>
+                  </div>
+                  <div class="form-check form-switch mb-1">
+                    <input type="checkbox" name="module_kwtsms_admin_events[]" value="low_stock" class="form-check-input" id="event-low-stock"
+                      {% if module_kwtsms_admin_events is iterable and 'low_stock' in module_kwtsms_admin_events %}checked{% endif %} />
+                    <label class="form-check-label" for="event-low-stock">{{ text_event_low_stock }}</label>
+                  </div>
+                  <div class="form-check form-switch mb-1">
+                    <input type="checkbox" name="module_kwtsms_admin_events[]" value="admin_new_review" class="form-check-input" id="event-admin-new-review"
+                      {% if module_kwtsms_admin_events is iterable and 'admin_new_review' in module_kwtsms_admin_events %}checked{% endif %} />
+                    <label class="form-check-label" for="event-admin-new-review">{{ text_event_admin_new_review }}</label>
+                  </div>
+                  <div class="form-check form-switch mb-1">
+                    <input type="checkbox" name="module_kwtsms_admin_events[]" value="admin_return_request" class="form-check-input" id="event-admin-return-request"
+                      {% if module_kwtsms_admin_events is iterable and 'admin_return_request' in module_kwtsms_admin_events %}checked{% endif %} />
+                    <label class="form-check-label" for="event-admin-return-request">{{ text_event_admin_return_request }}</label>
+                  </div>
+                </div>
+              </div>
             </form>
           </div>
         </div>
@@ -381,61 +429,151 @@
       {# TAB 4: TEMPLATES                                             #}
       {# ============================================================ #}
       <div class="tab-pane fade" id="tab-templates">
-        <div class="row mt-3">
-          {# Customer Order Status SMS #}
-          <div class="col-12 mb-3">
-            <div class="card">
+
+        {# Order Notifications #}
+        <h5 class="mt-3 mb-3" style="color: #FFA200;"><i class="fa-solid fa-shopping-cart"></i> {{ text_template_category_order }}</h5>
+
+        {% for template in templates %}
+          {% if template.sort_order == 1 %}
+            <div class="card mb-3">
               <div class="card-header" style="background-color: #FFA200; color: #fff;">
-                <i class="fa-solid fa-message"></i> {{ text_template_customer_order }}
+                <i class="fa-solid fa-comment-sms"></i> {{ template.name }}
               </div>
               <div class="card-body">
                 <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="input-tpl-customer-order-en" class="form-label">{{ entry_template_en }}</label>
-                    <textarea name="module_kwtsms_template_customer_order_en" id="input-tpl-customer-order-en" class="form-control" rows="4">{{ module_kwtsms_template_customer_order_en }}</textarea>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">{{ entry_template_en }}</label>
+                    <textarea name="templates[{{ template.id }}][body_en]" class="form-control" rows="3">{{ template.body_en }}</textarea>
                   </div>
-                  <div class="col-md-6 mb-3">
-                    <label for="input-tpl-customer-order-ar" class="form-label">{{ entry_template_ar }}</label>
-                    <textarea name="module_kwtsms_template_customer_order_ar" id="input-tpl-customer-order-ar" class="form-control" rows="4" dir="rtl">{{ module_kwtsms_template_customer_order_ar }}</textarea>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">{{ entry_template_ar }}</label>
+                    <textarea name="templates[{{ template.id }}][body_ar]" class="form-control" rows="3" dir="rtl">{{ template.body_ar }}</textarea>
                   </div>
                 </div>
-                <small class="form-text text-muted"><strong>{{ text_placeholders }}:</strong> {{ text_placeholder_list }}</small>
-              </div>
-            </div>
-          </div>
-
-          {# Admin New Paid Order SMS #}
-          <div class="col-12 mb-3">
-            <div class="card">
-              <div class="card-header" style="background-color: #FFA200; color: #fff;">
-                <i class="fa-solid fa-money-check-dollar"></i> {{ text_template_admin_paid }}
-              </div>
-              <div class="card-body">
-                <div class="mb-3">
-                  <label for="input-tpl-admin-paid-en" class="form-label">{{ entry_template_en }}</label>
-                  <textarea name="module_kwtsms_template_admin_paid_en" id="input-tpl-admin-paid-en" class="form-control" rows="4">{{ module_kwtsms_template_admin_paid_en }}</textarea>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <small class="text-muted">{{ text_placeholders }}: {{ template.placeholders }}</small>
+                  <button type="button" class="btn btn-sm btn-outline-secondary btn-reset-template" data-id="{{ template.id }}"><i class="fa-solid fa-rotate-left"></i> {{ text_reset }}</button>
                 </div>
-                <small class="form-text text-muted"><strong>{{ text_placeholders }}:</strong> {{ text_placeholder_list }}</small>
               </div>
             </div>
-          </div>
+          {% endif %}
+        {% endfor %}
 
-          {# Admin Problem Status SMS #}
-          <div class="col-12 mb-3">
-            <div class="card">
-              <div class="card-header" style="background-color: #FFA200; color: #fff;">
-                <i class="fa-solid fa-triangle-exclamation"></i> {{ text_template_admin_problem }}
-              </div>
-              <div class="card-body">
-                <div class="mb-3">
-                  <label for="input-tpl-admin-problem-en" class="form-label">{{ entry_template_en }}</label>
-                  <textarea name="module_kwtsms_template_admin_problem_en" id="input-tpl-admin-problem-en" class="form-control" rows="4">{{ module_kwtsms_template_admin_problem_en }}</textarea>
+        {# Per-Status Overrides (collapsible) #}
+        <div class="mb-3">
+          <a class="text-decoration-none" data-bs-toggle="collapse" href="#per-status-overrides" role="button" aria-expanded="false">
+            <i class="fa-solid fa-chevron-down"></i> {{ text_template_overrides }}
+          </a>
+          <div class="collapse mt-2" id="per-status-overrides">
+            <small class="text-muted d-block mb-2">{{ text_template_override_help }}</small>
+            {% for template in templates %}
+              {% if template.sort_order >= 10 and template.sort_order < 50 %}
+                <div class="card mb-2">
+                  <div class="card-body py-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <strong>{{ template.name }}</strong>
+                      <button type="button" class="btn btn-sm btn-outline-secondary btn-reset-template" data-id="{{ template.id }}"><i class="fa-solid fa-rotate-left"></i></button>
+                    </div>
+                    <div class="row mt-1">
+                      <div class="col-md-6">
+                        <textarea name="templates[{{ template.id }}][body_en]" class="form-control form-control-sm" rows="2" placeholder="(use default)">{{ template.body_en }}</textarea>
+                      </div>
+                      <div class="col-md-6">
+                        <textarea name="templates[{{ template.id }}][body_ar]" class="form-control form-control-sm" rows="2" dir="rtl" placeholder="(use default)">{{ template.body_ar }}</textarea>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <small class="form-text text-muted"><strong>{{ text_placeholders }}:</strong> {{ text_placeholder_list }}</small>
-              </div>
-            </div>
+              {% endif %}
+            {% endfor %}
           </div>
         </div>
+
+        {# Admin Order Templates (sort_order 50-51) #}
+        {% for template in templates %}
+          {% if template.sort_order >= 50 and template.sort_order < 100 %}
+            <div class="card mb-3">
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-user-shield"></i> {{ template.name }}
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">{{ entry_template_en }}</label>
+                    <textarea name="templates[{{ template.id }}][body_en]" class="form-control" rows="3">{{ template.body_en }}</textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">{{ entry_template_ar }}</label>
+                    <textarea name="templates[{{ template.id }}][body_ar]" class="form-control" rows="3" dir="rtl">{{ template.body_ar }}</textarea>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <small class="text-muted">{{ text_placeholders }}: {{ template.placeholders }}</small>
+                  <button type="button" class="btn btn-sm btn-outline-secondary btn-reset-template" data-id="{{ template.id }}"><i class="fa-solid fa-rotate-left"></i> {{ text_reset }}</button>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+
+        {# Customer Notifications (sort_order 100-199) #}
+        <h5 class="mt-4 mb-3" style="color: #FFA200;"><i class="fa-solid fa-user"></i> {{ text_template_category_customer }}</h5>
+
+        {% for template in templates %}
+          {% if template.sort_order >= 100 and template.sort_order < 200 %}
+            <div class="card mb-3">
+              <div class="card-header" style="background-color: #79CCF2; color: #fff;">
+                <i class="fa-solid fa-comment-sms"></i> {{ template.name }}
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">{{ entry_template_en }}</label>
+                    <textarea name="templates[{{ template.id }}][body_en]" class="form-control" rows="3">{{ template.body_en }}</textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">{{ entry_template_ar }}</label>
+                    <textarea name="templates[{{ template.id }}][body_ar]" class="form-control" rows="3" dir="rtl">{{ template.body_ar }}</textarea>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <small class="text-muted">{{ text_placeholders }}: {{ template.placeholders }}</small>
+                  <button type="button" class="btn btn-sm btn-outline-secondary btn-reset-template" data-id="{{ template.id }}"><i class="fa-solid fa-rotate-left"></i> {{ text_reset }}</button>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+
+        {# Admin Alerts (sort_order 200+) #}
+        <h5 class="mt-4 mb-3" style="color: #FFA200;"><i class="fa-solid fa-bell"></i> {{ text_template_category_admin }}</h5>
+
+        {% for template in templates %}
+          {% if template.sort_order >= 200 %}
+            <div class="card mb-3">
+              <div class="card-header" style="background-color: #FFA200; color: #fff;">
+                <i class="fa-solid fa-bell"></i> {{ template.name }}
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">{{ entry_template_en }}</label>
+                    <textarea name="templates[{{ template.id }}][body_en]" class="form-control" rows="3">{{ template.body_en }}</textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">{{ entry_template_ar }}</label>
+                    <textarea name="templates[{{ template.id }}][body_ar]" class="form-control" rows="3" dir="rtl">{{ template.body_ar }}</textarea>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <small class="text-muted">{{ text_placeholders }}: {{ template.placeholders }}</small>
+                  <button type="button" class="btn btn-sm btn-outline-secondary btn-reset-template" data-id="{{ template.id }}"><i class="fa-solid fa-rotate-left"></i> {{ text_reset }}</button>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+
       </div>
 
       {# ============================================================ #}
@@ -680,6 +818,7 @@ $(document).ready(function() {
   var URL_DEBUG_LOG        = decodeUrl('{{ debug_log_url }}');
   var URL_CLEAR_SMS_LOG    = decodeUrl('{{ clear_sms_log_url }}');
   var URL_CLEAR_DEBUG_LOG  = decodeUrl('{{ clear_debug_log_url }}');
+  var URL_RESET_TEMPLATE   = decodeUrl('{{ reset_template_url }}');
 
   // ---------------------------------------------------------------
   // Tab persistence via URL hash
@@ -711,10 +850,7 @@ $(document).ready(function() {
     btn.prop('disabled', true);
 
     var formData = $('#form-settings').serialize();
-    formData += '&' + $('[name="module_kwtsms_template_customer_order_en"]').serialize();
-    formData += '&' + $('[name="module_kwtsms_template_customer_order_ar"]').serialize();
-    formData += '&' + $('[name="module_kwtsms_template_admin_paid_en"]').serialize();
-    formData += '&' + $('[name="module_kwtsms_template_admin_problem_en"]').serialize();
+    formData += '&' + $('#tab-templates input, #tab-templates select, #tab-templates textarea').serialize();
 
     $.ajax({
       url: URL_SAVE,
@@ -1123,7 +1259,41 @@ $(document).ready(function() {
   });
 
   // ---------------------------------------------------------------
-  // 11. Pagination renderer
+  // 11. Template reset buttons
+  // ---------------------------------------------------------------
+  $(document).on('click', '.btn-reset-template', function() {
+    var btn = $(this);
+    var templateId = btn.data('id');
+
+    if (!confirm('{{ text_reset_confirm }}')) {
+      return;
+    }
+
+    $.ajax({
+      url: URL_RESET_TEMPLATE,
+      type: 'POST',
+      dataType: 'json',
+      data: { template_id: templateId },
+      success: function(json) {
+        if (json.error) {
+          showAlert('danger', json.error);
+        }
+        if (json.success) {
+          // Find the card containing this button and update textareas
+          var card = btn.closest('.card-body');
+          card.find('textarea[name$="[body_en]"]').val(json.body_en || '');
+          card.find('textarea[name$="[body_ar]"]').val(json.body_ar || '');
+          showAlert('success', json.success);
+        }
+      },
+      error: function() {
+        showAlert('danger', 'Request failed.');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 12. Pagination renderer
   // ---------------------------------------------------------------
   function renderPagination(selector, currentPage, totalPages, callback) {
     var nav = $(selector);
@@ -1199,7 +1369,7 @@ $(document).ready(function() {
   }
 
   // ---------------------------------------------------------------
-  // 12. Helper: update sender IDs display + dropdown
+  // 13. Helper: update sender IDs display + dropdown
   // ---------------------------------------------------------------
   function updateSenderIds(senderids) {
     var html = '';
@@ -1221,7 +1391,7 @@ $(document).ready(function() {
   }
 
   // ---------------------------------------------------------------
-  // 13. Helper: update coverage display
+  // 14. Helper: update coverage display
   // ---------------------------------------------------------------
   function updateCoverage(coverage) {
     var html = '';

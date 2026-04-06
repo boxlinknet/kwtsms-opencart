@@ -130,3 +130,24 @@ $_['error_send_failed']    = 'فشل إرسال الرسالة. تحقق من ا
 
 // Success
 $_['text_success']         = 'تم حفظ الإعدادات بنجاح.';
+
+// Settings - Event toggles
+$_['entry_low_stock_threshold']     = 'حد المخزون المنخفض';
+$_['help_low_stock_threshold']      = 'إرسال تنبيه للمسؤول عندما ينخفض مخزون أي منتج الى هذا المستوى أو أقل.';
+$_['entry_customer_events']         = 'إشعارات أحداث العملاء';
+$_['entry_admin_events']            = 'إشعارات أحداث المسؤول';
+$_['text_event_customer_registered'] = 'رسالة ترحيب العميل';
+$_['text_event_admin_new_customer']  = 'تنبيه تسجيل عميل جديد';
+$_['text_event_low_stock']           = 'تنبيه مخزون منخفض';
+$_['text_event_admin_new_review']    = 'تنبيه تقييم منتج جديد';
+$_['text_event_admin_return_request'] = 'تنبيه طلب إرجاع';
+
+// Templates - Categories
+$_['text_template_category_order']    = 'إشعارات الطلبات';
+$_['text_template_category_customer'] = 'إشعارات العملاء';
+$_['text_template_category_admin']    = 'تنبيهات المسؤول';
+$_['text_template_overrides']         = 'تخصيص حسب الحالة';
+$_['text_template_override_help']     = 'اتركه فارغا لاستخدام قالب حالة الطلب الافتراضي أعلاه.';
+$_['text_reset']                      = 'إعادة تعيين';
+$_['text_reset_confirm']              = 'إعادة تعيين هذا القالب للافتراضي؟';
+$_['text_reset_success']              = 'تم إعادة تعيين القالب.';

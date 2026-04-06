@@ -130,3 +130,24 @@ $_['error_send_failed']    = 'Failed to send SMS. Check the logs for details.';
 
 // Success
 $_['text_success']         = 'Settings saved successfully.';
+
+// Settings - Event toggles
+$_['entry_low_stock_threshold']     = 'Low Stock Threshold';
+$_['help_low_stock_threshold']      = 'Send admin alert when any product stock falls to this level or below.';
+$_['entry_customer_events']         = 'Customer Event Notifications';
+$_['entry_admin_events']            = 'Admin Event Notifications';
+$_['text_event_customer_registered'] = 'Customer Welcome SMS';
+$_['text_event_admin_new_customer']  = 'New Customer Registration Alert';
+$_['text_event_low_stock']           = 'Low Stock Alert';
+$_['text_event_admin_new_review']    = 'New Product Review Alert';
+$_['text_event_admin_return_request'] = 'Return Request Alert';
+
+// Templates - Categories
+$_['text_template_category_order']    = 'Order Notifications';
+$_['text_template_category_customer'] = 'Customer Notifications';
+$_['text_template_category_admin']    = 'Admin Alerts';
+$_['text_template_overrides']         = 'Per-Status Overrides';
+$_['text_template_override_help']     = 'Leave empty to use the default customer order template above.';
+$_['text_reset']                      = 'Reset';
+$_['text_reset_confirm']              = 'Reset this template to default?';
+$_['text_reset_success']              = 'Template reset to default.';

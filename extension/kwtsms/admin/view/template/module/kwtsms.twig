@@ -101,7 +101,7 @@
             <div class="card text-center">
               <div class="card-body p-2">
                 <small class="text-muted">{{ text_sender_id }}</small><br>
-                <strong id="dash-sender-id">{{ module_kwtsms_sender_id ? module_kwtsms_sender_id : '--' }}</strong>
+                <strong id="dash-sender-id">{{ module_kwtsms_sender_id ?: (gateway_configured ? 'KWT-SMS' : '--') }}</strong>
               </div>
             </div>
           </div>
@@ -325,14 +325,13 @@
                 <form id="form-gateway-settings">
                   <div class="mb-3">
                     <label for="input-sender-id" class="form-label">{{ entry_sender_id }}</label>
-                    <select name="sender_id" id="input-sender-id" class="form-select">
+                    <select class="form-select" id="input-sender-id" name="module_kwtsms_sender_id">
                       {% if gateway_senderids %}
                         {% for sid in gateway_senderids %}
-                        <option value="{{ sid }}" {% if sid == module_kwtsms_sender_id %}selected{% endif %}>{{ sid }}</option>
+                          <option value="{{ sid }}"{% if sid == module_kwtsms_sender_id %} selected{% endif %}>{{ sid }}</option>
                         {% endfor %}
-                      {% endif %}
-                      {% if not gateway_senderids or module_kwtsms_sender_id not in gateway_senderids %}
-                        <option value="{{ module_kwtsms_sender_id }}" selected>{{ module_kwtsms_sender_id }}</option>
+                      {% else %}
+                        <option value="KWT-SMS"{% if module_kwtsms_sender_id == 'KWT-SMS' or not module_kwtsms_sender_id %} selected{% endif %}>KWT-SMS</option>
                       {% endif %}
                     </select>
                   </div>

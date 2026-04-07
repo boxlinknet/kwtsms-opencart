@@ -145,6 +145,7 @@ class Kwtsms extends \Opencart\System\Engine\Model {
             '{stock_threshold}'   => $data['stock_threshold'] ?? '',
             '{rating}'            => $data['rating'] ?? '',
             '{return_reason}'     => $data['return_reason'] ?? '',
+            '{products_summary}'  => $data['products_summary'] ?? '',
         ];
 
         return str_replace(array_keys($placeholders), array_values($placeholders), $template);
@@ -422,5 +423,87 @@ class Kwtsms extends \Opencart\System\Engine\Model {
         }
 
         return ['allowed' => true, 'reason' => null];
+    }
+
+    /**
+     * Find abandoned carts: customers with idle carts older than $delayMinutes
+     * who have a phone number and have not placed an order in the delay period.
+     *
+     * @param int $delayMinutes Minutes of inactivity before a cart is considered abandoned
+     * @return array List of abandoned cart rows
+     */
+    public function getAbandonedCarts(int $delayMinutes): array {
+        $query = $this->db->query("
+            SELECT c.customer_id, c.firstname, c.lastname, c.telephone, c.email, c.language_id,
+                   MAX(ca.date_added) as last_cart_activity,
+                   GROUP_CONCAT(DISTINCT pd.name SEPARATOR ', ') as products_summary,
+                   SUM(ca.quantity * p.price) as cart_total
+            FROM `" . DB_PREFIX . "cart` ca
+            INNER JOIN `" . DB_PREFIX . "customer` c ON ca.customer_id = c.customer_id
+            INNER JOIN `" . DB_PREFIX . "product` p ON ca.product_id = p.product_id
+            LEFT JOIN `" . DB_PREFIX . "product_description` pd ON p.product_id = pd.product_id
+                AND pd.language_id = (SELECT language_id FROM `" . DB_PREFIX . "language` WHERE code = 'en-gb' LIMIT 1)
+            WHERE ca.customer_id > 0
+                AND c.telephone != ''
+                AND c.status = 1
+            GROUP BY ca.customer_id
+            HAVING last_cart_activity < DATE_SUB(NOW(), INTERVAL " . (int)$delayMinutes . " MINUTE)
+                AND ca.customer_id NOT IN (
+                    SELECT DISTINCT customer_id FROM `" . DB_PREFIX . "order`
+                    WHERE date_added > DATE_SUB(NOW(), INTERVAL " . (int)$delayMinutes . " MINUTE)
+                    AND order_status_id > 0
+                )
+        ");
+
+        return $query->rows;
+    }
+
+    /**
+     * Check if an abandoned cart is already tracked (detected or sent) for a customer/hash.
+     *
+     * @param int $customerId
+     * @param string $cartHash
+     * @return bool
+     */
+    public function isCartAlreadyTracked(int $customerId, string $cartHash): bool {
+        $query = $this->db->query("SELECT id FROM `" . DB_PREFIX . "kwtsms_abandoned_carts`
+            WHERE customer_id = " . (int)$customerId . "
+            AND cart_hash = '" . $this->db->escape($cartHash) . "'
+            AND status IN ('sent', 'detected')
+            LIMIT 1");
+        return $query->num_rows > 0;
+    }
+
+    /**
+     * Record a newly detected abandoned cart.
+     *
+     * @param int $customerId
+     * @param string $cartHash
+     * @param float $cartTotal
+     * @param string $productsSummary
+     * @return int Inserted row ID, or 0 on failure
+     */
+    public function trackAbandonedCart(int $customerId, string $cartHash, float $cartTotal, string $productsSummary): int {
+        $this->db->query("INSERT IGNORE INTO `" . DB_PREFIX . "kwtsms_abandoned_carts` SET
+            customer_id = " . (int)$customerId . ",
+            cart_hash = '" . $this->db->escape($cartHash) . "',
+            cart_total = " . (float)$cartTotal . ",
+            products_summary = '" . $this->db->escape(substr($productsSummary, 0, 255)) . "',
+            status = 'detected',
+            detected_at = NOW(),
+            created_at = NOW()");
+        return $this->db->getLastId();
+    }
+
+    /**
+     * Mark an abandoned cart record as SMS sent.
+     *
+     * @param int $id Row ID in kwtsms_abandoned_carts
+     * @return void
+     */
+    public function markAbandonedCartSent(int $id): void {
+        $this->db->query("UPDATE `" . DB_PREFIX . "kwtsms_abandoned_carts`
+            SET status = 'sent', sent_at = NOW()
+            WHERE id = " . (int)$id);
     }
 }

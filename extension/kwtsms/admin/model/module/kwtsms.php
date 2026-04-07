@@ -89,6 +89,22 @@ class Kwtsms extends \Opencart\System\Engine\Model {
             PRIMARY KEY (`id`),
             UNIQUE INDEX `idx_product_id` (`product_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "kwtsms_abandoned_carts` (
+            `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+            `customer_id` INT(11) UNSIGNED NOT NULL,
+            `cart_hash` VARCHAR(64) NOT NULL DEFAULT '',
+            `cart_total` DECIMAL(15,4) NOT NULL DEFAULT 0,
+            `products_summary` VARCHAR(255) NOT NULL DEFAULT '',
+            `status` VARCHAR(20) NOT NULL DEFAULT 'detected',
+            `detected_at` DATETIME NOT NULL,
+            `sent_at` DATETIME DEFAULT NULL,
+            `recovered_at` DATETIME DEFAULT NULL,
+            `created_at` DATETIME NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE INDEX `idx_customer_cart` (`customer_id`, `cart_hash`),
+            INDEX `idx_status` (`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
     }
 
     /**
@@ -101,6 +117,7 @@ class Kwtsms extends \Opencart\System\Engine\Model {
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "kwtsms_gateway`");
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "kwtsms_templates`");
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "kwtsms_low_stock_alerts`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "kwtsms_abandoned_carts`");
     }
 
     /**

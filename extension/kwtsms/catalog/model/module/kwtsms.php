@@ -320,4 +320,107 @@ class Kwtsms extends \Opencart\System\Engine\Model {
 
         return [];
     }
+
+    /**
+     * Create a new OTP code for a phone number.
+     *
+     * Invalidates any existing unexpired codes for the same phone, generates
+     * a random numeric code, and stores it in kwtsms_otp_attempts.
+     *
+     * @param string $phone Normalized phone number
+     * @param string $ipAddress Requester IP address
+     * @param int $codeLength Number of digits (default 6)
+     * @param int $expiryMinutes Minutes until code expires (default 5)
+     * @return array ['id' => int, 'code' => string]
+     */
+    public function createOtp(string $phone, string $ipAddress, int $codeLength = 6, int $expiryMinutes = 5): array {
+        // Invalidate existing unexpired codes for this phone
+        $this->db->query("UPDATE `" . DB_PREFIX . "kwtsms_otp_attempts` SET `status` = 'expired' WHERE `phone` = '" . $this->db->escape($phone) . "' AND `status` = 'sent' AND `expires_at` > NOW()");
+
+        // Generate random code
+        $max = (int)pow(10, $codeLength) - 1;
+        $code = str_pad((string)random_int(0, $max), $codeLength, '0', STR_PAD_LEFT);
+
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "kwtsms_otp_attempts` SET
+            `phone` = '" . $this->db->escape($phone) . "',
+            `ip_address` = '" . $this->db->escape($ipAddress) . "',
+            `otp_code` = '" . $this->db->escape($code) . "',
+            `status` = 'sent',
+            `attempts` = 0,
+            `created_at` = NOW(),
+            `expires_at` = DATE_ADD(NOW(), INTERVAL " . (int)$expiryMinutes . " MINUTE)");
+
+        return [
+            'id'   => $this->db->getLastId(),
+            'code' => $code,
+        ];
+    }
+
+    /**
+     * Verify an OTP code for a phone number.
+     *
+     * Checks the most recent unexpired code for the phone. Increments attempt
+     * counter on mismatch and marks as 'failed' after 3 wrong attempts.
+     *
+     * @param string $phone Normalized phone number
+     * @param string $code User-supplied OTP code
+     * @return array ['valid' => bool, 'error' => string|null, 'remaining' => int|null]
+     */
+    public function verifyOtp(string $phone, string $code): array {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "kwtsms_otp_attempts`
+            WHERE `phone` = '" . $this->db->escape($phone) . "'
+            AND `status` = 'sent'
+            AND `expires_at` > NOW()
+            ORDER BY `id` DESC LIMIT 1");
+
+        if (!$query->num_rows) {
+            return ['valid' => false, 'error' => 'expired'];
+        }
+
+        $row = $query->row;
+
+        if ($row['otp_code'] !== $code) {
+            $attempts = (int)$row['attempts'] + 1;
+            if ($attempts >= 3) {
+                $this->db->query("UPDATE `" . DB_PREFIX . "kwtsms_otp_attempts` SET `status` = 'failed', `attempts` = " . $attempts . " WHERE `id` = " . (int)$row['id']);
+                return ['valid' => false, 'error' => 'failed'];
+            }
+            $this->db->query("UPDATE `" . DB_PREFIX . "kwtsms_otp_attempts` SET `attempts` = " . $attempts . " WHERE `id` = " . (int)$row['id']);
+            return ['valid' => false, 'error' => 'invalid', 'remaining' => 3 - $attempts];
+        }
+
+        $this->db->query("UPDATE `" . DB_PREFIX . "kwtsms_otp_attempts` SET `status` = 'verified' WHERE `id` = " . (int)$row['id']);
+        return ['valid' => true];
+    }
+
+    /**
+     * Check whether a phone number or IP address has exceeded the OTP rate limit.
+     *
+     * @param string $phone Normalized phone number
+     * @param string $ip Requester IP address
+     * @param int $maxPhone Max OTP requests per phone per hour (default 5)
+     * @param int $maxIp Max OTP requests per IP per hour (default 10)
+     * @return array ['allowed' => bool, 'reason' => string|null]
+     */
+    public function checkOtpRateLimit(string $phone, string $ip, int $maxPhone = 5, int $maxIp = 10): array {
+        $phoneQuery = $this->db->query("SELECT COUNT(*) as `total` FROM `" . DB_PREFIX . "kwtsms_otp_attempts`
+            WHERE `phone` = '" . $this->db->escape($phone) . "'
+            AND `created_at` > DATE_SUB(NOW(), INTERVAL 1 HOUR)");
+        $phoneCount = (int)$phoneQuery->row['total'];
+
+        if ($phoneCount >= $maxPhone) {
+            return ['allowed' => false, 'reason' => 'phone_limit'];
+        }
+
+        $ipQuery = $this->db->query("SELECT COUNT(*) as `total` FROM `" . DB_PREFIX . "kwtsms_otp_attempts`
+            WHERE `ip_address` = '" . $this->db->escape($ip) . "'
+            AND `created_at` > DATE_SUB(NOW(), INTERVAL 1 HOUR)");
+        $ipCount = (int)$ipQuery->row['total'];
+
+        if ($ipCount >= $maxIp) {
+            return ['allowed' => false, 'reason' => 'ip_limit'];
+        }
+
+        return ['allowed' => true, 'reason' => null];
+    }
 }

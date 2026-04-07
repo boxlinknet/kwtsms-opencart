@@ -151,3 +151,14 @@ $_['text_template_override_help']     = 'Leave empty to use the default customer
 $_['text_reset']                      = 'Reset';
 $_['text_reset_confirm']              = 'Reset this template to default?';
 $_['text_reset_success']              = 'Template reset to default.';
+
+// OTP Settings
+$_['entry_cod_otp_enabled']      = 'COD OTP Verification';
+$_['help_cod_otp_enabled']       = 'Require phone verification for Cash on Delivery orders.';
+$_['entry_otp_length']           = 'OTP Code Length';
+$_['entry_otp_expiry']           = 'OTP Expiry (minutes)';
+$_['entry_otp_max_per_phone']    = 'Max Requests per Phone/Hour';
+$_['entry_otp_max_per_ip']       = 'Max Requests per IP/Hour';
+$_['entry_otp_resend_cooldown']  = 'Resend Cooldown (seconds)';
+$_['text_otp_sender_warning']    = 'For reliable OTP delivery, use a Transactional Sender ID. Promotional sender IDs may be blocked by DND filtering.';
+$_['text_otp_settings']          = 'COD OTP Verification';

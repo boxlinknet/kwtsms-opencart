@@ -162,3 +162,10 @@ $_['entry_otp_max_per_ip']       = 'Max Requests per IP/Hour';
 $_['entry_otp_resend_cooldown']  = 'Resend Cooldown (seconds)';
 $_['text_otp_sender_warning']    = 'For reliable OTP delivery, use a Transactional Sender ID. Promotional sender IDs may be blocked by DND filtering.';
 $_['text_otp_settings']          = 'COD OTP Verification';
+
+// Abandoned Cart
+$_['entry_abandoned_cart_enabled']   = 'Abandoned Cart SMS';
+$_['help_abandoned_cart_enabled']    = 'Send SMS reminders to customers who left items in their cart.';
+$_['entry_abandoned_cart_delay']     = 'Delay Before Sending (minutes)';
+$_['entry_abandoned_cart_max']       = 'Max SMS per Cron Run';
+$_['text_abandoned_cart_settings']   = 'Abandoned Cart Recovery';

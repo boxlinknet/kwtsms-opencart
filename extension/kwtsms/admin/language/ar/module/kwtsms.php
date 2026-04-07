@@ -162,3 +162,10 @@ $_['entry_otp_max_per_ip']       = 'الحد الأقصى للطلبات لكل 
 $_['entry_otp_resend_cooldown']  = 'فترة انتظار إعادة الإرسال (ثواني)';
 $_['text_otp_sender_warning']    = 'لضمان توصيل رمز التحقق، استخدم معرف مرسل معاملات. معرفات المرسل الترويجية قد تحجب بفلتر عدم الإزعاج.';
 $_['text_otp_settings']          = 'التحقق بالرمز عند الدفع عند الاستلام';
+
+// Abandoned Cart
+$_['entry_abandoned_cart_enabled']   = 'رسائل السلة المتروكة';
+$_['help_abandoned_cart_enabled']    = 'إرسال تذكيرات للعملاء الذين تركوا منتجات في سلة التسوق.';
+$_['entry_abandoned_cart_delay']     = 'التأخير قبل الإرسال (دقائق)';
+$_['entry_abandoned_cart_max']       = 'الحد الأقصى للرسائل لكل تشغيل';
+$_['text_abandoned_cart_settings']   = 'استرجاع السلة المتروكة';

@@ -289,6 +289,35 @@
                 </div>
               </div>
 
+              {# Abandoned Cart Recovery #}
+              <hr class="my-4"/>
+              <h5 style="color: #FFA200;"><i class="fa-solid fa-cart-shopping"></i> {{ text_abandoned_cart_settings }}</h5>
+
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label fw-bold">{{ entry_abandoned_cart_enabled }}</label>
+                <div class="col-sm-9">
+                  <div class="form-check form-switch">
+                    <input type="checkbox" name="module_kwtsms_abandoned_cart_enabled" value="1" class="form-check-input" id="input-abandoned-cart-enabled"
+                      {% if module_kwtsms_abandoned_cart_enabled %}checked{% endif %} />
+                    <label class="form-check-label" for="input-abandoned-cart-enabled">{{ help_abandoned_cart_enabled }}</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">{{ entry_abandoned_cart_delay }}</label>
+                <div class="col-sm-9">
+                  <input type="number" name="module_kwtsms_abandoned_cart_delay" value="{{ module_kwtsms_abandoned_cart_delay }}" class="form-control" min="15" max="1440" style="max-width: 120px;" />
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">{{ entry_abandoned_cart_max }}</label>
+                <div class="col-sm-9">
+                  <input type="number" name="module_kwtsms_abandoned_cart_max_per_run" value="{{ module_kwtsms_abandoned_cart_max_per_run }}" class="form-control" min="1" max="200" style="max-width: 120px;" />
+                </div>
+              </div>
+
               {# COD OTP Verification #}
               <hr class="my-4"/>
               <h5 style="color: #FFA200;"><i class="fa-solid fa-shield-halved"></i> {{ text_otp_settings }}</h5>

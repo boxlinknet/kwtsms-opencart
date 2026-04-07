@@ -108,6 +108,11 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             $data['module_kwtsms_admin_events'] = [];
         }
 
+        // Abandoned cart settings
+        $data['module_kwtsms_abandoned_cart_enabled'] = $this->config->get('module_kwtsms_abandoned_cart_enabled');
+        $data['module_kwtsms_abandoned_cart_delay'] = $this->config->get('module_kwtsms_abandoned_cart_delay') ?: 60;
+        $data['module_kwtsms_abandoned_cart_max_per_run'] = $this->config->get('module_kwtsms_abandoned_cart_max_per_run') ?: 50;
+
         // OTP settings
         $data['module_kwtsms_cod_otp_enabled'] = $this->config->get('module_kwtsms_cod_otp_enabled');
         $data['module_kwtsms_otp_length'] = $this->config->get('module_kwtsms_otp_length') ?: 6;
@@ -219,10 +224,13 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_return');
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/kwtsms/module/kwtsms_otp');
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_otp');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/kwtsms/module/kwtsms_cart');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_cart');
 
-        // 4. Register daily cron task
+        // 4. Register cron tasks
         $this->load->model('setting/cron');
         $this->model_setting_cron->addCron('kwtsms_sync', 'kwtSMS: Daily sync of balance, sender IDs, and coverage', 'day', 'extension/kwtsms/module/kwtsms.cron', true);
+        $this->model_setting_cron->addCron('kwtsms_abandoned_cart', 'kwtSMS: Abandoned cart SMS reminders', 'hour', 'extension/kwtsms/module/kwtsms_cart.cron', true);
 
         // 5. Seed SMS templates into DB
         $this->model_extension_kwtsms_module_kwtsms->seedTemplates();
@@ -238,6 +246,17 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             `default_ar` = 'رمز التحقق الخاص بك في {store_name} هو: {otp_code}. صالح لمدة {expiry_minutes} دقائق.',
             `placeholders` = '{otp_code}, {expiry_minutes}, {store_name}',
             `sort_order` = 400");
+
+        // Seed abandoned cart reminder template
+        $this->db->query("INSERT IGNORE INTO `" . DB_PREFIX . "kwtsms_templates` SET
+            `event_type` = 'abandoned_cart',
+            `name` = 'Abandoned Cart Reminder',
+            `body_en` = 'Hi {customer_name}, you left items in your cart at {store_name}. Complete your order now! Cart total: {order_total}.',
+            `body_ar` = '{customer_name} مرحبا، لديك منتجات في سلة التسوق في {store_name}. أكمل طلبك الان! المجموع: {order_total}.',
+            `default_en` = 'Hi {customer_name}, you left items in your cart at {store_name}. Complete your order now! Cart total: {order_total}.',
+            `default_ar` = '{customer_name} مرحبا، لديك منتجات في سلة التسوق في {store_name}. أكمل طلبك الان! المجموع: {order_total}.',
+            `placeholders` = '{customer_name}, {store_name}, {order_total}, {products_summary}, {date}',
+            `sort_order` = 500");
 
         // 6. Set default settings
         $defaults = [
@@ -263,6 +282,9 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             'module_kwtsms_otp_max_per_phone'               => 5,
             'module_kwtsms_otp_max_per_ip'                  => 10,
             'module_kwtsms_otp_resend_cooldown'             => 60,
+            'module_kwtsms_abandoned_cart_enabled'          => 0,
+            'module_kwtsms_abandoned_cart_delay'            => 60,
+            'module_kwtsms_abandoned_cart_max_per_run'      => 50,
         ];
 
         $this->load->model('setting/setting');
@@ -288,9 +310,10 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $this->model_setting_event->deleteEventByCode('kwtsms_return_request');
         $this->model_setting_event->deleteEventByCode('kwtsms_cod_otp');
 
-        // 3. Remove cron task
+        // 3. Remove cron tasks
         $this->load->model('setting/cron');
         $this->model_setting_cron->deleteCronByCode('kwtsms_sync');
+        $this->model_setting_cron->deleteCronByCode('kwtsms_abandoned_cart');
 
         // 4. Delete settings
         $this->load->model('setting/setting');
@@ -378,6 +401,11 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             $adminEvents = isset($this->request->post['module_kwtsms_admin_events'])
                 ? $this->request->post['module_kwtsms_admin_events'] : [];
             $settings['module_kwtsms_admin_events'] = json_encode(is_array($adminEvents) ? $adminEvents : []);
+
+            // Abandoned cart settings
+            $settings['module_kwtsms_abandoned_cart_enabled'] = isset($this->request->post['module_kwtsms_abandoned_cart_enabled']) ? (int)$this->request->post['module_kwtsms_abandoned_cart_enabled'] : 0;
+            $settings['module_kwtsms_abandoned_cart_delay'] = isset($this->request->post['module_kwtsms_abandoned_cart_delay']) ? max(15, min(1440, (int)$this->request->post['module_kwtsms_abandoned_cart_delay'])) : 60;
+            $settings['module_kwtsms_abandoned_cart_max_per_run'] = isset($this->request->post['module_kwtsms_abandoned_cart_max_per_run']) ? max(1, min(200, (int)$this->request->post['module_kwtsms_abandoned_cart_max_per_run'])) : 50;
 
             // OTP settings
             $settings['module_kwtsms_cod_otp_enabled'] = isset($this->request->post['module_kwtsms_cod_otp_enabled']) ? (int)$this->request->post['module_kwtsms_cod_otp_enabled'] : 0;

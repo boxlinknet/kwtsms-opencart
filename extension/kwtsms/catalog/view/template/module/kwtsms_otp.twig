@@ -1,0 +1,183 @@
+<!-- kwtSMS OTP Verification Modal -->
+<div class="modal fade" id="kwtsms-otp-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #FFA200; color: #fff;">
+        <h5 class="modal-title"><i class="fa-solid fa-shield-halved"></i> {{ text_otp_title }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="kwtsms-otp-status" class="mb-3"></div>
+        <div class="mb-3">
+          <label class="form-label">{{ text_otp_placeholder }}</label>
+          <input type="text" id="kwtsms-otp-code" class="form-control form-control-lg text-center" maxlength="8" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="d-grid gap-2">
+          <button type="button" id="kwtsms-otp-verify-btn" class="btn btn-lg" style="background-color: #FFA200; color: #fff;">{{ text_otp_verify }}</button>
+          <button type="button" id="kwtsms-otp-resend-btn" class="btn btn-outline-secondary">{{ text_otp_resend }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var OTP_SEND_URL = '{{ otp_send_url }}';
+  var OTP_VERIFY_URL = '{{ otp_verify_url }}';
+  var OTP_STATUS_URL = '{{ otp_status_url }}';
+  var RESEND_COOLDOWN = {{ resend_cooldown }};
+  var otpPhone = '';
+  var resendTimer = null;
+
+  function isCodPayment() {
+    // Check if COD is selected - look for common COD identifiers
+    var paymentMethod = $('input[name="payment_method"]:checked').val() || '';
+    if (!paymentMethod) {
+      // Try to find from the checkout state
+      paymentMethod = $('#checkout-confirm').find('[data-payment-method]').data('payment-method') || '';
+    }
+    return paymentMethod.indexOf('cod') !== -1;
+  }
+
+  function getCheckoutPhone() {
+    // Try to get phone from checkout form
+    var phone = $('input[name="telephone"]').val() || $('input[name="payment_telephone"]').val() || '';
+    return phone;
+  }
+
+  function showOtpModal() {
+    $('#kwtsms-otp-code').val('');
+    $('#kwtsms-otp-status').html('');
+    var modal = new bootstrap.Modal(document.getElementById('kwtsms-otp-modal'));
+    modal.show();
+    sendOtp();
+  }
+
+  function sendOtp() {
+    var phone = getCheckoutPhone();
+    if (!phone) {
+      $('#kwtsms-otp-status').html('<div class="alert alert-danger">Phone number is required.</div>');
+      return;
+    }
+
+    otpPhone = phone;
+    $('#kwtsms-otp-resend-btn').prop('disabled', true);
+
+    $.ajax({
+      url: OTP_SEND_URL,
+      type: 'POST',
+      dataType: 'json',
+      data: { phone: phone },
+      success: function(json) {
+        if (json.error) {
+          $('#kwtsms-otp-status').html('<div class="alert alert-danger">' + json.error + '</div>');
+          $('#kwtsms-otp-resend-btn').prop('disabled', false);
+        } else if (json.success) {
+          $('#kwtsms-otp-status').html('<div class="alert alert-info">Code sent to ' + json.phone_masked + '</div>');
+          startResendTimer(json.resend_cooldown || RESEND_COOLDOWN);
+        }
+      },
+      error: function() {
+        $('#kwtsms-otp-status').html('<div class="alert alert-danger">Failed to send code.</div>');
+        $('#kwtsms-otp-resend-btn').prop('disabled', false);
+      }
+    });
+  }
+
+  function startResendTimer(seconds) {
+    var remaining = seconds;
+    $('#kwtsms-otp-resend-btn').prop('disabled', true).text('Resend in ' + remaining + 's');
+
+    if (resendTimer) clearInterval(resendTimer);
+    resendTimer = setInterval(function() {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(resendTimer);
+        $('#kwtsms-otp-resend-btn').prop('disabled', false).text('{{ text_otp_resend }}');
+      } else {
+        $('#kwtsms-otp-resend-btn').text('Resend in ' + remaining + 's');
+      }
+    }, 1000);
+  }
+
+  // Verify button
+  $(document).on('click', '#kwtsms-otp-verify-btn', function() {
+    var code = $('#kwtsms-otp-code').val().trim();
+    if (!code) return;
+
+    $(this).prop('disabled', true);
+
+    $.ajax({
+      url: OTP_VERIFY_URL,
+      type: 'POST',
+      dataType: 'json',
+      data: { phone: otpPhone, code: code },
+      success: function(json) {
+        $('#kwtsms-otp-verify-btn').prop('disabled', false);
+        if (json.valid) {
+          $('#kwtsms-otp-status').html('<div class="alert alert-success">' + json.message + '</div>');
+          setTimeout(function() {
+            bootstrap.Modal.getInstance(document.getElementById('kwtsms-otp-modal')).hide();
+            // Re-trigger the confirm button
+            $('#button-confirm').trigger('click');
+          }, 1000);
+        } else {
+          $('#kwtsms-otp-status').html('<div class="alert alert-danger">' + json.message + '</div>');
+          $('#kwtsms-otp-code').val('').focus();
+        }
+      },
+      error: function() {
+        $('#kwtsms-otp-verify-btn').prop('disabled', false);
+        $('#kwtsms-otp-status').html('<div class="alert alert-danger">Verification failed.</div>');
+      }
+    });
+  });
+
+  // Resend button
+  $(document).on('click', '#kwtsms-otp-resend-btn', function() {
+    sendOtp();
+  });
+
+  // Enter key in code input
+  $(document).on('keypress', '#kwtsms-otp-code', function(e) {
+    if (e.which === 13) {
+      e.preventDefault();
+      $('#kwtsms-otp-verify-btn').trigger('click');
+    }
+  });
+
+  // Intercept checkout confirm for COD
+  var otpVerified = false;
+
+  $(document).on('click', '#button-confirm', function(e) {
+    if (otpVerified) return; // Already verified, let it through
+    if (!isCodPayment()) return; // Not COD, skip OTP
+
+    // Check if already verified in this session
+    $.ajax({
+      url: OTP_STATUS_URL,
+      type: 'GET',
+      dataType: 'json',
+      async: false, // Must be synchronous to block the click
+      success: function(json) {
+        if (!json.enabled) {
+          otpVerified = true;
+          return;
+        }
+        if (json.verified) {
+          otpVerified = true;
+          return;
+        }
+      }
+    });
+
+    if (!otpVerified) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      showOtpModal();
+      return false;
+    }
+  });
+})();
+</script>

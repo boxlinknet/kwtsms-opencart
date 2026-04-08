@@ -70,16 +70,6 @@ Free OpenCart 4.x extension that integrates the [kwtSMS](https://www.kwtsms.com)
 3. **Templates tab**: Customize SMS message templates (EN + AR)
 4. **Test**: Use the Test Gateway feature to verify everything works
 
-## Screenshots
-
-| Dashboard | Settings | Gateway |
-|-----------|----------|---------|
-| ![Dashboard](docs/screenshots/1.0.0/01-dashboard.png) | ![Settings](docs/screenshots/1.0.0/02-settings-full.png) | ![Gateway](docs/screenshots/1.0.0/03-gateway-connected-full.png) |
-
-| Templates | Logs | Help |
-|-----------|------|------|
-| ![Templates](docs/screenshots/1.0.0/04-templates-full.png) | ![Logs](docs/screenshots/1.0.0/06-logs-sms-full.png) | ![Help](docs/screenshots/1.0.0/08-help-full.png) |
-
 ## Placeholders
 
 | Placeholder | Available In | Description |

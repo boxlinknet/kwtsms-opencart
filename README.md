@@ -1,18 +1,54 @@
 # kwtSMS - SMS Gateway for OpenCart 4.x
 
-Free OpenCart 4.x extension that integrates the [kwtSMS](https://www.kwtsms.com) SMS gateway for order notifications.
+[![OpenCart](https://img.shields.io/badge/OpenCart-4.x-blue?logo=opencart)](https://www.opencart.com)
+[![PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4?logo=php&logoColor=white)](https://php.net)
+[![License](https://img.shields.io/badge/License-GPL--3.0-green)](LICENSE)
+[![kwtSMS](https://img.shields.io/badge/Gateway-kwtSMS-FFA200)](https://www.kwtsms.com)
+[![Arabic](https://img.shields.io/badge/Language-EN%20%7C%20AR-orange)](https://www.kwtsms.com)
+[![Free](https://img.shields.io/badge/Price-Free-brightgreen)]()
+
+Free OpenCart 4.x extension that integrates the [kwtSMS](https://www.kwtsms.com) SMS gateway for order notifications, OTP verification, abandoned cart recovery, and admin alerts.
 
 ## Features
 
-- **Order SMS Notifications**: Automatically send SMS to customers when order status changes
-- **Admin Alerts**: Receive SMS for new paid orders and problem statuses (cancelled, refunded)
-- **Gateway Management**: Login/logout, reload balance, test SMS sending
-- **Message Templates**: Customizable EN + AR templates with placeholder support
-- **SMS & Debug Logging**: Full audit trail of all SMS attempts with debug mode
-- **Dashboard**: SMS analytics (sent/failed/skipped) and system status at a glance
-- **Daily Sync**: Cron job to keep balance, sender IDs, and coverage up to date
-- **Phone Normalization**: Handles local numbers, Arabic digits, country code prepending
-- **Bulk SMS**: Auto-batching for 200+ recipients with ERR013 backoff
+### Order Notifications
+- **Customer SMS on status change**: configurable per-status, with per-status template overrides
+- **Admin paid order alerts**: SMS when a new paid order arrives
+- **Admin problem order alerts**: SMS on cancelled, refunded, or other problem statuses
+- **Per-status custom templates**: different message for Shipped vs Processing vs Cancelled
+
+### COD OTP Verification
+- **Phone verification at checkout** for Cash on Delivery orders
+- Prevents fake COD orders with one-time code verification
+- Configurable code length, expiry, resend cooldown
+- Rate limiting per phone and per IP
+- Bootstrap 5 modal injected into checkout page
+
+### Abandoned Cart Recovery
+- **Cron-based detection** of abandoned carts
+- Sends SMS reminder after configurable delay (default: 1 hour)
+- One SMS per cart (dedup via cart hash, no spam)
+- Configurable max sends per cron run
+
+### Event Alerts
+- **Customer welcome SMS** on new registration
+- **Admin new customer alert**
+- **Admin low stock alert** with global threshold, once-per-product logic
+- **Admin new product review alert**
+- **Admin return request alert**
+
+### Core
+- **6-tab admin UI**: Dashboard, Settings, Gateway, Templates, Logs, Help
+- **Gateway login/logout/reload** with live API connection
+- **Test Gateway**: send test SMS through the full pipeline
+- **24 message templates**: EN + AR, editable with reset-to-default
+- **SMS log**: full audit trail with filters, pagination, clear
+- **Debug log**: internal flow tracing (normalize, verify, clean, send)
+- **Dashboard**: SMS analytics (sent/failed/skipped) and system status
+- **Daily cron sync**: balance, sender IDs, coverage
+- **Phone normalization**: local numbers, Arabic digits, +/00 prefix stripping, default country code
+- **Bulk SMS**: auto-batching for 200+ recipients with ERR013 backoff
+- **Coverage check**: skips countries not in account coverage
 
 ## Requirements
 
@@ -27,25 +63,44 @@ Free OpenCart 4.x extension that integrates the [kwtSMS](https://www.kwtsms.com)
 3. Go to Extensions > Extensions > Modules > find "kwtSMS - SMS Gateway" > Install
 4. Click Edit to configure
 
-## Configuration
+## Quick Start
 
 1. **Gateway tab**: Enter your kwtSMS API credentials and click Login
-2. **Settings tab**: Enable the extension, set admin phone numbers, configure order status triggers
-3. **Templates tab**: Customize SMS message templates
-4. **Test**: Use the Test Gateway feature to send a test SMS
+2. **Settings tab**: Enable the extension, set admin phone numbers, configure triggers
+3. **Templates tab**: Customize SMS message templates (EN + AR)
+4. **Test**: Use the Test Gateway feature to verify everything works
+
+## Screenshots
+
+| Dashboard | Settings | Gateway |
+|-----------|----------|---------|
+| ![Dashboard](docs/screenshots/1.0.0/01-dashboard.png) | ![Settings](docs/screenshots/1.0.0/02-settings-full.png) | ![Gateway](docs/screenshots/1.0.0/03-gateway-connected-full.png) |
+
+| Templates | Logs | Help |
+|-----------|------|------|
+| ![Templates](docs/screenshots/1.0.0/04-templates-full.png) | ![Logs](docs/screenshots/1.0.0/06-logs-sms-full.png) | ![Help](docs/screenshots/1.0.0/08-help-full.png) |
 
 ## Placeholders
 
-Use these in message templates:
-
-| Placeholder | Description |
-|---|---|
-| `{order_id}` | Order number |
-| `{customer_name}` | Customer full name |
-| `{order_status}` | Current order status name |
-| `{order_total}` | Order total with currency |
-| `{store_name}` | Store name |
-| `{date}` | Current date and time |
+| Placeholder | Available In | Description |
+|---|---|---|
+| `{order_id}` | Order, Admin | Order number |
+| `{customer_name}` | All | Customer full name |
+| `{order_status}` | Order | Current order status |
+| `{order_total}` | Order, Admin, Cart | Total with currency |
+| `{store_name}` | All | Store name |
+| `{date}` | All | Current date and time |
+| `{customer_email}` | Customer, Admin | Customer email |
+| `{customer_phone}` | Admin | Customer phone |
+| `{product_name}` | Stock, Review, Return | Product name |
+| `{product_model}` | Stock | Product model/SKU |
+| `{product_quantity}` | Stock | Current stock level |
+| `{stock_threshold}` | Stock | Configured threshold |
+| `{rating}` | Review | Review rating (1-5) |
+| `{return_reason}` | Return | Return reason |
+| `{otp_code}` | OTP | Verification code |
+| `{expiry_minutes}` | OTP | Code validity |
+| `{products_summary}` | Cart | Product names in cart |
 
 ## API Endpoints Used
 
@@ -54,12 +109,21 @@ Use these in message templates:
 - `POST /API/senderid/` - List sender IDs
 - `POST /API/coverage/` - List coverage
 
+## Technical Details
+
+- 18 PHP files + 2 Twig templates
+- 7 database tables
+- 7 OpenCart events
+- 2 cron jobs (daily sync + abandoned cart)
+- 24 SMS templates (EN + AR)
+
 ## Support
 
 - [kwtSMS Support Center](https://www.kwtsms.com/support.html)
 - [FAQ](https://www.kwtsms.com/faq_all.php)
 - [API Documentation](https://www.kwtsms.com/doc/KwtSMS.com_API_Documentation_v41.pdf)
 - [Sender ID Help](https://www.kwtsms.com/sender-id-help.html)
+- [Developers](https://www.kwtsms.com/developers.html)
 
 ## License
 

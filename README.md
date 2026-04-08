@@ -120,8 +120,7 @@ Free OpenCart 4.x extension that integrates the [kwtSMS](https://www.kwtsms.com)
 ## Support
 
 - [kwtSMS Support Center](https://www.kwtsms.com/support.html)
-- [FAQ](https://www.kwtsms.com/faq_all.php)
-- [API Documentation](https://www.kwtsms.com/doc/KwtSMS.com_API_Documentation_v41.pdf)
+- [FAQ](https://www.kwtsms.com/faq/)
 - [Sender ID Help](https://www.kwtsms.com/sender-id-help.html)
 - [Developers](https://www.kwtsms.com/developers.html)
 

@@ -170,11 +170,16 @@ class KwtsmsGateway extends \Opencart\System\Engine\Controller {
         require_once(DIR_EXTENSION . 'kwtsms/vendor/autoload.php');
 
         $kwtsms = new \Opencart\System\Library\Extension\Kwtsms\Kwtsms($this->registry);
-        $result = $kwtsms->testGateway($phone, $message);
 
-        if (!empty($result['success'])) {
+        // Use the main send() flow: normalize, verify, coverage, clean, dedup, batch, send
+        // This handles comma-separated numbers, country code prepend, everything
+        $result = $kwtsms->send($phone, $message, 'test_gateway');
+
+        if (!empty($result['success']) && ($result['sent'] ?? 0) > 0) {
             $json['success'] = $this->language->get('text_test_sent');
-            $json['result']  = $result['result'] ?? [];
+            $json['sent']    = $result['sent'] ?? 0;
+            $json['failed']  = $result['failed'] ?? 0;
+            $json['skipped'] = $result['skipped'] ?? 0;
         } else {
             $json['error'] = !empty($result['error']) ? $result['error'] : $this->language->get('error_send_failed');
         }

@@ -537,11 +537,12 @@
               <div class="card-body">
                 <div class="mb-3">
                   <label for="input-test-phone" class="form-label">{{ entry_test_phone }}</label>
-                  <input type="text" class="form-control" id="input-test-phone" placeholder="96598765432">
+                  <input type="text" class="form-control" id="input-test-phone" placeholder="96598765432,96512345678">
+                  <small class="form-text text-muted">Comma-separated for multiple numbers.</small>
                 </div>
                 <div class="mb-3">
                   <label for="input-test-message" class="form-label">{{ entry_test_message }}</label>
-                  <textarea class="form-control" id="input-test-message" rows="3">kwtSMS Gateway Test</textarea>
+                  <textarea class="form-control" id="input-test-message" rows="3"></textarea>
                 </div>
                 <button type="button" id="button-test-gateway" class="btn" style="background-color: #79CCF2; color: #fff;">
                   <i class="fa-solid fa-paper-plane"></i> {{ text_send_test }}
@@ -1245,6 +1246,12 @@ $(document).ready(function() {
   // ---------------------------------------------------------------
   // 6. Test Gateway
   // ---------------------------------------------------------------
+  // Auto-fill test message with timestamp
+  var testMsg = $('#input-test-message');
+  if (testMsg.length && !testMsg.val()) {
+    testMsg.val('kwtSMS Gateway Test - ' + new Date().toISOString().replace('T', ' ').substring(0, 19));
+  }
+
   $('#button-test-gateway').on('click', function() {
     var btn = $(this);
     btn.prop('disabled', true);
@@ -1263,7 +1270,13 @@ $(document).ready(function() {
           showAlert('danger', json.error);
         }
         if (json.success) {
-          showAlert('success', json.success);
+          var msg = json.success;
+          if (json.sent !== undefined) {
+            msg += ' (Sent: ' + json.sent + ', Failed: ' + (json.failed || 0) + ', Skipped: ' + (json.skipped || 0) + ')';
+          }
+          showAlert('success', msg);
+          // Refresh timestamp for next test
+          testMsg.val('kwtSMS Gateway Test - ' + new Date().toISOString().replace('T', ' ').substring(0, 19));
         }
       },
       error: function() {

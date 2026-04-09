@@ -7,8 +7,12 @@ class KwtsmsOtp extends \Opencart\System\Engine\Controller {
         $json = [];
 
         try {
-            // Check extension enabled + COD OTP enabled
-            if (!$this->config->get('module_kwtsms_status') || !$this->config->get('module_kwtsms_username') || !$this->config->get('module_kwtsms_cod_otp_enabled')) {
+            // Check extension enabled + at least one OTP feature enabled
+            $otpEnabled = $this->config->get('module_kwtsms_cod_otp_enabled')
+                || $this->config->get('module_kwtsms_otp_register_enabled')
+                || $this->config->get('module_kwtsms_otp_login_enabled');
+
+            if (!$this->config->get('module_kwtsms_status') || !$this->config->get('module_kwtsms_username') || !$otpEnabled) {
                 $json['error'] = 'OTP verification is not available.';
                 $this->outputJson($json);
                 return;
@@ -164,6 +168,149 @@ class KwtsmsOtp extends \Opencart\System\Engine\Controller {
 
         $otpHtml = $this->load->view('extension/kwtsms/module/kwtsms_otp', $data);
         $output .= $otpHtml;
+    }
+
+    /**
+     * View event handler: inject OTP modal into registration page.
+     * Trigger: catalog/view/account/register/after
+     */
+    public function injectRegister(string &$route, array &$args, mixed &$output): void {
+        if (!$this->config->get('module_kwtsms_status') || !$this->config->get('module_kwtsms_otp_register_enabled')) {
+            return;
+        }
+
+        $this->load->language('extension/kwtsms/module/kwtsms');
+
+        $data = [
+            'mode'             => 'register',
+            'otp_send_url'     => $this->url->link('extension/kwtsms/module/kwtsms_otp.send'),
+            'otp_verify_url'   => $this->url->link('extension/kwtsms/module/kwtsms_otp.verify'),
+            'text_otp_title'   => $this->language->get('text_otp_register_title'),
+            'text_otp_verify'  => $this->language->get('text_otp_verify'),
+            'text_otp_resend'  => $this->language->get('text_otp_resend'),
+            'text_otp_placeholder' => $this->language->get('text_otp_placeholder'),
+            'resend_cooldown'  => (int)($this->config->get('module_kwtsms_otp_resend_cooldown') ?: 60),
+        ];
+
+        $otpHtml = $this->load->view('extension/kwtsms/module/kwtsms_otp_auth', $data);
+        $output .= $otpHtml;
+    }
+
+    /**
+     * View event handler: inject OTP modal into login page.
+     * Trigger: catalog/view/account/login/after
+     */
+    public function injectLogin(string &$route, array &$args, mixed &$output): void {
+        if (!$this->config->get('module_kwtsms_status') || !$this->config->get('module_kwtsms_otp_login_enabled')) {
+            return;
+        }
+
+        $this->load->language('extension/kwtsms/module/kwtsms');
+
+        $data = [
+            'mode'                 => 'login',
+            'otp_send_url'         => $this->url->link('extension/kwtsms/module/kwtsms_otp.send'),
+            'otp_verify_url'       => $this->url->link('extension/kwtsms/module/kwtsms_otp.verify'),
+            'otp_login_send_url'   => $this->url->link('extension/kwtsms/module/kwtsms_otp.loginSendOtp'),
+            'otp_logout_url'       => $this->url->link('account/logout'),
+            'text_otp_title'       => $this->language->get('text_otp_login_title'),
+            'text_otp_verify'      => $this->language->get('text_otp_verify'),
+            'text_otp_resend'      => $this->language->get('text_otp_resend'),
+            'text_otp_placeholder' => $this->language->get('text_otp_placeholder'),
+            'resend_cooldown'      => (int)($this->config->get('module_kwtsms_otp_resend_cooldown') ?: 60),
+        ];
+
+        $otpHtml = $this->load->view('extension/kwtsms/module/kwtsms_otp_auth', $data);
+        $output .= $otpHtml;
+    }
+
+    /**
+     * AJAX endpoint: send OTP to the currently logged-in customer's phone.
+     * Used by login OTP flow after credentials are verified.
+     */
+    public function loginSendOtp(): void {
+        $json = [];
+
+        try {
+            if (!$this->config->get('module_kwtsms_status') || !$this->config->get('module_kwtsms_username') || !$this->config->get('module_kwtsms_otp_login_enabled')) {
+                $json['skip'] = true;
+                $this->outputJson($json);
+                return;
+            }
+
+            // Check if customer is logged in
+            if (!$this->customer->isLogged()) {
+                $json['skip'] = true;
+                $this->outputJson($json);
+                return;
+            }
+
+            // Get customer phone
+            $this->load->model('extension/kwtsms/module/kwtsms');
+            $customer = $this->model_extension_kwtsms_module_kwtsms->getCustomerData($this->customer->getId());
+
+            if (empty($customer['telephone'])) {
+                $json['skip'] = true;
+                $this->outputJson($json);
+                return;
+            }
+
+            $phone = $customer['telephone'];
+
+            // Normalize
+            require_once(DIR_EXTENSION . 'kwtsms/vendor/autoload.php');
+            $library = new \Opencart\System\Library\Extension\Kwtsms\Kwtsms($this->registry);
+            $normalized = $library->normalize($phone);
+
+            if (!$library->verify($normalized)) {
+                $json['skip'] = true;
+                $this->outputJson($json);
+                return;
+            }
+
+            // Rate limit
+            $maxPhone = (int)($this->config->get('module_kwtsms_otp_max_per_phone') ?: 5);
+            $maxIp = (int)($this->config->get('module_kwtsms_otp_max_per_ip') ?: 10);
+            $ip = $this->request->server['REMOTE_ADDR'] ?? '0.0.0.0';
+
+            $rateCheck = $this->model_extension_kwtsms_module_kwtsms->checkOtpRateLimit($normalized, $ip, $maxPhone, $maxIp);
+            if (!$rateCheck['allowed']) {
+                $json['error'] = 'Too many requests. Please try again later.';
+                $this->outputJson($json);
+                return;
+            }
+
+            // Create and send OTP
+            $codeLength = (int)($this->config->get('module_kwtsms_otp_length') ?: 6);
+            $expiryMinutes = (int)($this->config->get('module_kwtsms_otp_expiry') ?: 5);
+            $otp = $this->model_extension_kwtsms_module_kwtsms->createOtp($normalized, $ip, $codeLength, $expiryMinutes);
+
+            $template = $this->model_extension_kwtsms_module_kwtsms->getTemplate('otp_verification', 'en');
+            if (empty($template)) {
+                $template = 'Your verification code for {store_name} is: {otp_code}. Valid for {expiry_minutes} minutes.';
+            }
+            $message = str_replace(
+                ['{otp_code}', '{expiry_minutes}', '{store_name}'],
+                [$otp['code'], (string)$expiryMinutes, $this->config->get('config_name')],
+                $template
+            );
+
+            $result = $library->send($normalized, $message, 'otp_verification');
+
+            if (!empty($result['success']) && $result['sent'] > 0) {
+                $masked = substr($normalized, 0, 5) . '***' . substr($normalized, -3);
+                $json['success'] = true;
+                $json['phone_masked'] = $masked;
+                $json['phone'] = $normalized;
+                $json['resend_cooldown'] = (int)($this->config->get('module_kwtsms_otp_resend_cooldown') ?: 60);
+            } else {
+                $json['skip'] = true; // Can't send OTP, let them in
+            }
+        } catch (\Throwable $e) {
+            $json['skip'] = true;
+        }
+
+        $this->outputJson($json);
     }
 
     private function outputJson(array $json): void {

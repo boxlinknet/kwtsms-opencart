@@ -493,12 +493,12 @@
                   <div class="mb-3">
                     <label for="input-sender-id" class="form-label">{{ entry_sender_id }}</label>
                     <select class="form-select" id="input-sender-id" name="module_kwtsms_sender_id">
-                      {% if gateway_senderids %}
+                      {% if gateway_configured and gateway_senderids %}
                         {% for sid in gateway_senderids %}
                           <option value="{{ sid }}"{% if sid == module_kwtsms_sender_id %} selected{% endif %}>{{ sid }}</option>
                         {% endfor %}
                       {% else %}
-                        <option value="KWT-SMS"{% if module_kwtsms_sender_id == 'KWT-SMS' or not module_kwtsms_sender_id %} selected{% endif %}>KWT-SMS</option>
+                        <option value="KWT-SMS" selected>KWT-SMS</option>
                       {% endif %}
                     </select>
                   </div>

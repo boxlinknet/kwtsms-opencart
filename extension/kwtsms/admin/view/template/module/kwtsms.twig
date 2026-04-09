@@ -32,6 +32,9 @@
         <a class="nav-link" data-bs-toggle="tab" href="#tab-templates"><i class="fa-solid fa-file-lines"></i> {{ tab_templates }}</a>
       </li>
       <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-campaigns"><i class="fa-solid fa-bullhorn"></i> {{ tab_campaigns }}</a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link" data-bs-toggle="tab" href="#tab-logs"><i class="fa-solid fa-list-check"></i> {{ tab_logs }}</a>
       </li>
       <li class="nav-item">
@@ -689,7 +692,94 @@
       </div>
 
       {# ============================================================ #}
-      {# TAB 5: LOGS                                                  #}
+      {# TAB 5: CAMPAIGNS                                             #}
+      {# ============================================================ #}
+      <div class="tab-pane fade" id="tab-campaigns">
+
+        {# Send Campaign Card #}
+        <div class="card mt-3 mb-4">
+          <div class="card-header" style="background-color: #FFA200; color: #fff;">
+            <i class="fa-solid fa-paper-plane"></i> {{ text_send_campaign }}
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label fw-bold">{{ entry_campaign_name }}</label>
+              <div class="col-sm-9">
+                <input type="text" id="campaign-name" class="form-control" placeholder="{{ entry_campaign_name }}" />
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label fw-bold">{{ entry_audience }}</label>
+              <div class="col-sm-9">
+                <div class="form-check mb-1">
+                  <input type="radio" name="campaign_audience" value="all" class="form-check-input" id="audience-all" checked />
+                  <label class="form-check-label" for="audience-all">{{ text_all_customers }}</label>
+                </div>
+                <div class="form-check mb-1">
+                  <input type="radio" name="campaign_audience" value="group" class="form-check-input" id="audience-group" />
+                  <label class="form-check-label" for="audience-group">{{ text_customer_group }}</label>
+                </div>
+                <div id="campaign-group-select" style="display:none;" class="ms-4 mb-2">
+                  <select id="campaign-group-id" class="form-select" style="max-width:300px;">
+                    {% for group in customer_groups %}
+                      <option value="{{ group.customer_group_id }}">{{ group.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="form-check mb-1">
+                  <input type="radio" name="campaign_audience" value="custom" class="form-check-input" id="audience-custom" />
+                  <label class="form-check-label" for="audience-custom">{{ text_custom_numbers }}</label>
+                </div>
+                <div id="campaign-custom-numbers" style="display:none;" class="ms-4 mb-2">
+                  <textarea id="campaign-numbers" class="form-control" rows="3" placeholder="96598765432,96512345678"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="col-sm-3 col-form-label fw-bold">{{ entry_campaign_message }}</label>
+              <div class="col-sm-9">
+                <textarea id="campaign-message" class="form-control" rows="4"></textarea>
+                <small class="text-muted">{{ text_placeholders }}: {customer_name}, {store_name}, {date}</small>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-9 offset-sm-3">
+                <button type="button" id="btn-campaign-preview" class="btn btn-outline-primary me-2"><i class="fa-solid fa-eye"></i> {{ text_preview }}</button>
+                <button type="button" id="btn-campaign-send" class="btn" style="background-color:#FFA200;color:#fff;" disabled><i class="fa-solid fa-paper-plane"></i> {{ text_send_campaign }}</button>
+                <div id="campaign-preview-result" class="mt-2"></div>
+                <div id="campaign-send-result" class="mt-2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Campaign History Card #}
+        <div class="card">
+          <div class="card-header" style="background-color: #79CCF2; color: #fff;">
+            <i class="fa-solid fa-clock-rotate-left"></i> {{ text_campaign_history }}
+          </div>
+          <div class="card-body">
+            <table class="table table-bordered table-hover">
+              <thead><tr>
+                <th>{{ column_date }}</th>
+                <th>{{ entry_campaign_name }}</th>
+                <th>{{ entry_audience }}</th>
+                <th>{{ text_sms_sent }}</th>
+                <th>{{ text_sms_failed }}</th>
+                <th>{{ column_points }}</th>
+                <th>{{ column_status }}</th>
+              </tr></thead>
+              <tbody id="campaign-history-body">
+                <tr><td colspan="7" class="text-center">{{ text_no_results }}</td></tr>
+              </tbody>
+            </table>
+            <div id="campaign-history-pagination"></div>
+          </div>
+        </div>
+      </div>
+
+      {# ============================================================ #}
+      {# TAB 6: LOGS                                                  #}
       {# ============================================================ #}
       <div class="tab-pane fade" id="tab-logs">
         <ul class="nav nav-pills mt-3 mb-3" id="log-subtabs">
@@ -931,6 +1021,9 @@ $(document).ready(function() {
   var URL_CLEAR_SMS_LOG    = decodeUrl('{{ clear_sms_log_url }}');
   var URL_CLEAR_DEBUG_LOG  = decodeUrl('{{ clear_debug_log_url }}');
   var URL_RESET_TEMPLATE   = decodeUrl('{{ reset_template_url }}');
+  var URL_CAMPAIGN_PREVIEW = decodeUrl('{{ campaign_preview_url }}');
+  var URL_CAMPAIGN_SEND    = decodeUrl('{{ campaign_send_url }}');
+  var URL_CAMPAIGN_HISTORY = decodeUrl('{{ campaign_history_url }}');
 
   // ---------------------------------------------------------------
   // Tab persistence via URL hash
@@ -951,6 +1044,11 @@ $(document).ready(function() {
     if ($(e.target).attr('href') === '#tab-logs') {
       loadSmsLog(1);
       loadDebugLog(1);
+    }
+
+    // Auto-load campaign history when switching to campaigns tab
+    if ($(e.target).attr('href') === '#tab-campaigns') {
+      loadCampaignHistory(1);
     }
   });
 
@@ -1533,6 +1631,180 @@ $(document).ready(function() {
       loadDebugLog(1);
     }
   });
+
+  // ---------------------------------------------------------------
+  // 15. Campaign: audience radio toggle
+  // ---------------------------------------------------------------
+  $('input[name="campaign_audience"]').on('change', function() {
+    var val = $(this).val();
+    $('#campaign-group-select').toggle(val === 'group');
+    $('#campaign-custom-numbers').toggle(val === 'custom');
+    // Reset preview state when audience changes
+    $('#btn-campaign-send').prop('disabled', true);
+    $('#campaign-preview-result').empty();
+    $('#campaign-send-result').empty();
+  });
+
+  // ---------------------------------------------------------------
+  // 16. Campaign: Preview
+  // ---------------------------------------------------------------
+  $('#btn-campaign-preview').on('click', function() {
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $('#campaign-preview-result').empty();
+    $('#campaign-send-result').empty();
+
+    $.ajax({
+      url: URL_CAMPAIGN_PREVIEW,
+      type: 'POST',
+      dataType: 'json',
+      data: {
+        audience: $('input[name="campaign_audience"]:checked').val(),
+        group_id: $('#campaign-group-id').val(),
+        custom_numbers: $('#campaign-numbers').val()
+      },
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          $('#campaign-preview-result').html('<div class="alert alert-danger mb-0">' + json.error + '</div>');
+          return;
+        }
+        var html = '<div class="alert alert-info mb-0">';
+        html += '<strong>{{ text_recipients }}:</strong> ' + json.count;
+        html += ' &middot; <strong>{{ text_estimated_credits }}:</strong> ' + json.estimated_credits;
+        html += '</div>';
+        $('#campaign-preview-result').html(html);
+
+        if (json.count > 0) {
+          $('#btn-campaign-send').prop('disabled', false);
+        } else {
+          $('#btn-campaign-send').prop('disabled', true);
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        $('#campaign-preview-result').html('<div class="alert alert-danger mb-0">An error occurred. Please try again.</div>');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 17. Campaign: Send
+  // ---------------------------------------------------------------
+  $('#btn-campaign-send').on('click', function() {
+    var count = $('#campaign-preview-result .alert-info').length ? parseInt($('#campaign-preview-result .alert-info').text().match(/\d+/)) : 0;
+    var msg = '{{ text_confirm_send }}'.replace('%s', count);
+    if (!confirm(msg)) {
+      return;
+    }
+
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $('#campaign-send-result').empty();
+
+    var message = $('#campaign-message').val();
+    if (!message.trim()) {
+      $('#campaign-send-result').html('<div class="alert alert-danger mb-0">{{ error_message_required }}</div>');
+      btn.prop('disabled', false);
+      return;
+    }
+
+    $.ajax({
+      url: URL_CAMPAIGN_SEND,
+      type: 'POST',
+      dataType: 'json',
+      data: {
+        name: $('#campaign-name').val(),
+        audience: $('input[name="campaign_audience"]:checked').val(),
+        group_id: $('#campaign-group-id').val(),
+        custom_numbers: $('#campaign-numbers').val(),
+        message: message
+      },
+      success: function(json) {
+        btn.prop('disabled', false);
+        if (json.error) {
+          $('#campaign-send-result').html('<div class="alert alert-danger mb-0">' + json.error + '</div>');
+          return;
+        }
+        if (json.success) {
+          var html = '<div class="alert alert-success mb-0">';
+          html += '{{ text_campaign_sent }}';
+          html += ' {{ text_sms_sent }}: ' + json.sent;
+          html += ', {{ text_sms_failed }}: ' + json.failed;
+          html += ', {{ text_sms_skipped }}: ' + json.skipped;
+          html += ', {{ column_points }}: ' + json.credits;
+          html += '</div>';
+          $('#campaign-send-result').html(html);
+          // Refresh history
+          loadCampaignHistory(1);
+        }
+      },
+      error: function() {
+        btn.prop('disabled', false);
+        $('#campaign-send-result').html('<div class="alert alert-danger mb-0">An error occurred. Please try again.</div>');
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // 18. Campaign: History loading
+  // ---------------------------------------------------------------
+  function loadCampaignHistory(page) {
+    $.ajax({
+      url: URL_CAMPAIGN_HISTORY,
+      type: 'GET',
+      dataType: 'json',
+      data: { page: page || 1 },
+      success: function(json) {
+        if (json.error) {
+          showAlert('danger', json.error);
+          return;
+        }
+
+        var tbody = $('#campaign-history-body');
+        tbody.empty();
+
+        if (json.rows && json.rows.length > 0) {
+          $.each(json.rows, function(i, row) {
+            var statusBadge = '';
+            switch (row.status) {
+              case 'completed':
+                statusBadge = '<span class="badge bg-success">completed</span>';
+                break;
+              case 'sending':
+                statusBadge = '<span class="badge bg-warning text-dark">sending</span>';
+                break;
+              default:
+                statusBadge = '<span class="badge bg-secondary">' + (row.status || '') + '</span>';
+            }
+
+            var tr = '<tr>';
+            tr += '<td>' + (row.created_at || '') + '</td>';
+            tr += '<td>' + (row.name || '') + '</td>';
+            tr += '<td>' + (row.audience || '') + '</td>';
+            tr += '<td>' + (row.sent_count || '0') + '</td>';
+            tr += '<td>' + (row.failed_count || '0') + '</td>';
+            tr += '<td>' + (row.credits_used || '0') + '</td>';
+            tr += '<td>' + statusBadge + '</td>';
+            tr += '</tr>';
+            tbody.append(tr);
+          });
+        } else {
+          tbody.html('<tr><td colspan="7" class="text-center">{{ text_no_results }}</td></tr>');
+        }
+
+        renderPagination('#campaign-history-pagination', json.page, json.pages, function(p) { loadCampaignHistory(p); });
+      },
+      error: function() {
+        showAlert('danger', 'Failed to load campaign history.');
+      }
+    });
+  }
+
+  // Load campaign history on initial page load if campaigns tab is active
+  if (hash === '#tab-campaigns') {
+    loadCampaignHistory(1);
+  }
 });
 </script>
 {{ footer }}

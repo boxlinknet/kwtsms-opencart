@@ -13,8 +13,6 @@ Free OpenCart 4.x extension that integrates the [kwtSMS](https://www.kwtsms.com)
 
 [kwtSMS](https://www.kwtsms.com) is a Kuwait-based SMS gateway operating since 2007, serving 1,000+ networks across 220+ countries. It is the SMS provider of choice for businesses in Kuwait and the GCC region, offering direct carrier relationships, flat-rate credits that never expire, and private Sender ID registration for Kuwait telecoms (Zain, Ooredoo, STC).
 
-The gateway supports both transactional SMS (OTP, alerts, notifications) and promotional SMS (marketing, campaigns), with dedicated Sender IDs for each type. kwtSMS provides official client libraries in [12 programming languages](https://www.kwtsms.com/developers.html) including PHP, Python, JavaScript, Go, Java, C#, Swift, Kotlin, Rust, Dart, Ruby, and Zig.
-
 For more information, visit [kwtsms.com](https://www.kwtsms.com) or contact [support](https://www.kwtsms.com/support.html).
 
 ## Features

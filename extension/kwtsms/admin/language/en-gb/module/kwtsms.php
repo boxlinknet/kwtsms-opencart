@@ -170,6 +170,23 @@ $_['help_otp_register_enabled']      = 'Require phone verification via OTP when 
 $_['entry_otp_login_enabled']        = 'Login OTP';
 $_['help_otp_login_enabled']         = 'Require phone verification via OTP when customers log in.';
 
+// Campaigns
+$_['tab_campaigns']           = 'Campaigns';
+$_['text_send_campaign']      = 'Send Campaign';
+$_['entry_campaign_name']     = 'Campaign Name';
+$_['entry_audience']          = 'Audience';
+$_['text_all_customers']      = 'All Customers';
+$_['text_customer_group']     = 'Customer Group';
+$_['text_custom_numbers']     = 'Custom Numbers';
+$_['entry_campaign_message']  = 'Message';
+$_['text_preview']            = 'Preview';
+$_['text_campaign_history']   = 'Campaign History';
+$_['text_recipients']         = 'Recipients';
+$_['text_estimated_credits']  = 'Estimated credits';
+$_['text_campaign_sent']      = 'Campaign sent successfully.';
+$_['text_campaign_no_recipients'] = 'No recipients found.';
+$_['text_confirm_send']       = 'Send this campaign to %s recipients?';
+
 // Abandoned Cart
 $_['entry_abandoned_cart_enabled']   = 'Abandoned Cart SMS';
 $_['help_abandoned_cart_enabled']    = 'Send SMS reminders to customers who left items in their cart.';

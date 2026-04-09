@@ -128,6 +128,15 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         // Reset template URL
         $data['reset_template_url'] = $this->url->link('extension/kwtsms/module/kwtsms.resetTemplate', 'user_token=' . $this->session->data['user_token']);
 
+        // Campaign URLs
+        $data['campaign_preview_url'] = $this->url->link('extension/kwtsms/module/kwtsms_campaign.preview', 'user_token=' . $this->session->data['user_token']);
+        $data['campaign_send_url'] = $this->url->link('extension/kwtsms/module/kwtsms_campaign.send', 'user_token=' . $this->session->data['user_token']);
+        $data['campaign_history_url'] = $this->url->link('extension/kwtsms/module/kwtsms_campaign.history', 'user_token=' . $this->session->data['user_token']);
+
+        // Customer groups for campaign audience selector
+        $this->load->model('extension/kwtsms/module/kwtsms_campaign');
+        $data['customer_groups'] = $this->model_extension_kwtsms_module_kwtsms_campaign->getCustomerGroups();
+
         // Order statuses: full list from localisation model
         $data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
 
@@ -248,6 +257,8 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_otp');
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/kwtsms/module/kwtsms_cart');
         $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_cart');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/kwtsms/module/kwtsms_campaign');
+        $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/kwtsms/module/kwtsms_campaign');
 
         // 4. Register cron tasks
         $this->load->model('setting/cron');
@@ -279,6 +290,25 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             `default_ar` = '{customer_name} مرحبا، لديك منتجات في سلة التسوق في {store_name}. أكمل طلبك الان! المجموع: {order_total}.',
             `placeholders` = '{customer_name}, {store_name}, {order_total}, {products_summary}, {date}',
             `sort_order` = 500");
+
+        // 5b. Create campaigns table
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "kwtsms_campaigns` (
+            `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+            `name` VARCHAR(100) NOT NULL DEFAULT '',
+            `audience` VARCHAR(50) NOT NULL DEFAULT '',
+            `message` TEXT NOT NULL,
+            `recipients_count` INT(11) NOT NULL DEFAULT 0,
+            `sent_count` INT(11) NOT NULL DEFAULT 0,
+            `failed_count` INT(11) NOT NULL DEFAULT 0,
+            `skipped_count` INT(11) NOT NULL DEFAULT 0,
+            `credits_used` DECIMAL(10,2) NOT NULL DEFAULT 0,
+            `status` VARCHAR(20) NOT NULL DEFAULT 'pending',
+            `created_at` DATETIME NOT NULL,
+            `completed_at` DATETIME DEFAULT NULL,
+            PRIMARY KEY (`id`),
+            INDEX `idx_status` (`status`),
+            INDEX `idx_created_at` (`created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
 
         // 6. Set default settings
         $defaults = [
@@ -323,6 +353,9 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         // 1. Drop database tables
         $this->load->model('extension/kwtsms/module/kwtsms');
         $this->model_extension_kwtsms_module_kwtsms->uninstall();
+
+        // 1b. Drop campaigns table
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "kwtsms_campaigns`");
 
         // 2. Delete events
         $this->load->model('setting/event');

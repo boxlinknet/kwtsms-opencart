@@ -170,6 +170,23 @@ $_['help_otp_register_enabled']      = 'طلب التحقق من رقم الها
 $_['entry_otp_login_enabled']        = 'التحقق عند تسجيل الدخول';
 $_['help_otp_login_enabled']         = 'طلب التحقق من رقم الهاتف عند تسجيل دخول العملاء.';
 
+// Campaigns
+$_['tab_campaigns']           = 'الحملات';
+$_['text_send_campaign']      = 'إرسال حملة';
+$_['entry_campaign_name']     = 'اسم الحملة';
+$_['entry_audience']          = 'الجمهور';
+$_['text_all_customers']      = 'جميع العملاء';
+$_['text_customer_group']     = 'مجموعة العملاء';
+$_['text_custom_numbers']     = 'أرقام مخصصة';
+$_['entry_campaign_message']  = 'الرسالة';
+$_['text_preview']            = 'معاينة';
+$_['text_campaign_history']   = 'سجل الحملات';
+$_['text_recipients']         = 'المستلمين';
+$_['text_estimated_credits']  = 'الرصيد المقدر';
+$_['text_campaign_sent']      = 'تم إرسال الحملة بنجاح.';
+$_['text_campaign_no_recipients'] = 'لا يوجد مستلمين.';
+$_['text_confirm_send']       = 'إرسال هذه الحملة الى %s مستلم؟';
+
 // Abandoned Cart
 $_['entry_abandoned_cart_enabled']   = 'رسائل السلة المتروكة';
 $_['help_abandoned_cart_enabled']    = 'إرسال تذكيرات للعملاء الذين تركوا منتجات في سلة التسوق.';

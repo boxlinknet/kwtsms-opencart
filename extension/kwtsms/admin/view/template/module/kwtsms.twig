@@ -504,7 +504,15 @@
                   </div>
                   <div class="mb-3">
                     <label for="input-country-code" class="form-label">{{ entry_country_code }}</label>
-                    <input type="text" name="country_code" value="{{ module_kwtsms_country_code }}" id="input-country-code" class="form-control" placeholder="965">
+                    <select class="form-select" id="input-country-code" name="country_code">
+                      {% if gateway_configured and gateway_coverage %}
+                        {% for code in gateway_coverage %}
+                          <option value="{{ code }}"{% if code == module_kwtsms_country_code %} selected{% endif %}>{{ code }}</option>
+                        {% endfor %}
+                      {% else %}
+                        <option value="965" selected>965</option>
+                      {% endif %}
+                    </select>
                     <small class="form-text text-muted">{{ help_country_code }}</small>
                   </div>
                   <div class="mb-3">

@@ -1,0 +1,331 @@
+<!-- kwtSMS OTP Auth Verification Modal ({{ mode }}) -->
+<div class="modal fade" id="kwtsms-otp-auth-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #FFA200; color: #fff;">
+        <h5 class="modal-title"><i class="fa-solid fa-shield-halved"></i> {{ text_otp_title }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="kwtsms-otp-auth-status" class="mb-3"></div>
+        <div class="mb-3">
+          <label class="form-label">{{ text_otp_placeholder }}</label>
+          <input type="text" id="kwtsms-otp-auth-code" class="form-control form-control-lg text-center" maxlength="8" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="d-grid gap-2">
+          <button type="button" id="kwtsms-otp-auth-verify-btn" class="btn btn-lg" style="background-color: #FFA200; color: #fff;">{{ text_otp_verify }}</button>
+          <button type="button" id="kwtsms-otp-auth-resend-btn" class="btn btn-outline-secondary">{{ text_otp_resend }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var OTP_MODE = '{{ mode }}';
+  var OTP_SEND_URL = '{{ otp_send_url }}';
+  var OTP_VERIFY_URL = '{{ otp_verify_url }}';
+  {% if mode == 'login' %}
+  var OTP_LOGIN_SEND_URL = '{{ otp_login_send_url }}';
+  var OTP_LOGOUT_URL = '{{ otp_logout_url }}';
+  {% endif %}
+  var RESEND_COOLDOWN = {{ resend_cooldown }};
+  var otpPhone = '';
+  var resendTimer = null;
+  var otpModalInstance = null;
+
+  function getOtpModal() {
+    if (!otpModalInstance) {
+      otpModalInstance = new bootstrap.Modal(document.getElementById('kwtsms-otp-auth-modal'), {
+        backdrop: 'static',
+        keyboard: false
+      });
+    }
+    return otpModalInstance;
+  }
+
+  function setStatus(type, text) {
+    var el = document.getElementById('kwtsms-otp-auth-status');
+    el.textContent = '';
+    var div = document.createElement('div');
+    div.className = 'alert alert-' + type;
+    div.textContent = text;
+    el.appendChild(div);
+  }
+
+  function showOtpModal(phoneMasked, phone, onSuccess) {
+    otpPhone = phone;
+    document.getElementById('kwtsms-otp-auth-code').value = '';
+    setStatus('info', 'Code sent to ' + phoneMasked);
+
+    // Store the success callback
+    window._kwtsmsOtpAuthSuccess = onSuccess;
+
+    getOtpModal().show();
+  }
+
+  function startResendTimer(seconds) {
+    var remaining = seconds;
+    var btn = document.getElementById('kwtsms-otp-auth-resend-btn');
+    btn.disabled = true;
+    btn.textContent = 'Resend in ' + remaining + 's';
+
+    if (resendTimer) clearInterval(resendTimer);
+    resendTimer = setInterval(function() {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(resendTimer);
+        btn.disabled = false;
+        btn.textContent = '{{ text_otp_resend }}';
+      } else {
+        btn.textContent = 'Resend in ' + remaining + 's';
+      }
+    }, 1000);
+  }
+
+  // Verify button
+  document.getElementById('kwtsms-otp-auth-verify-btn').addEventListener('click', function() {
+    var code = document.getElementById('kwtsms-otp-auth-code').value.trim();
+    if (!code) return;
+
+    this.disabled = true;
+    var self = this;
+
+    fetch(OTP_VERIFY_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'phone=' + encodeURIComponent(otpPhone) + '&code=' + encodeURIComponent(code)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      self.disabled = false;
+      if (json.valid) {
+        setStatus('success', json.message);
+        setTimeout(function() {
+          getOtpModal().hide();
+          if (typeof window._kwtsmsOtpAuthSuccess === 'function') {
+            window._kwtsmsOtpAuthSuccess();
+          }
+        }, 800);
+      } else {
+        setStatus('danger', json.message);
+        document.getElementById('kwtsms-otp-auth-code').value = '';
+        document.getElementById('kwtsms-otp-auth-code').focus();
+      }
+    })
+    .catch(function() {
+      self.disabled = false;
+      setStatus('danger', 'Verification failed.');
+    });
+  });
+
+  // Enter key in code input
+  document.getElementById('kwtsms-otp-auth-code').addEventListener('keypress', function(e) {
+    if (e.which === 13 || e.keyCode === 13) {
+      e.preventDefault();
+      document.getElementById('kwtsms-otp-auth-verify-btn').click();
+    }
+  });
+
+  // Resend button
+  document.getElementById('kwtsms-otp-auth-resend-btn').addEventListener('click', function() {
+    if (OTP_MODE === 'register') {
+      resendForRegister();
+    } else if (OTP_MODE === 'login') {
+      resendForLogin();
+    }
+  });
+
+  {% if mode == 'register' %}
+  // =============================================
+  // REGISTRATION OTP FLOW
+  // =============================================
+  function resendForRegister() {
+    var form = document.querySelector('#form-register');
+    if (!form) return;
+    var phone = form.querySelector('input[name="telephone"]');
+    if (!phone || !phone.value.trim()) return;
+
+    document.getElementById('kwtsms-otp-auth-resend-btn').disabled = true;
+
+    fetch(OTP_SEND_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'phone=' + encodeURIComponent(phone.value)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      if (json.success) {
+        setStatus('info', 'Code sent to ' + json.phone_masked);
+        startResendTimer(json.resend_cooldown || RESEND_COOLDOWN);
+      } else {
+        setStatus('danger', json.error || 'Failed to send OTP');
+        document.getElementById('kwtsms-otp-auth-resend-btn').disabled = false;
+      }
+    })
+    .catch(function() {
+      setStatus('danger', 'Failed to send code.');
+      document.getElementById('kwtsms-otp-auth-resend-btn').disabled = false;
+    });
+  }
+
+  (function initRegisterOtp() {
+    var form = document.querySelector('#form-register');
+    if (!form) return;
+
+    var otpVerified = false;
+
+    form.addEventListener('submit', function(e) {
+      if (otpVerified) return; // Already verified, let submit through
+
+      var phone = form.querySelector('input[name="telephone"]');
+      if (!phone || !phone.value.trim()) return; // No phone, skip OTP
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      // Send OTP
+      fetch(OTP_SEND_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'phone=' + encodeURIComponent(phone.value)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(json) {
+        if (json.success) {
+          startResendTimer(json.resend_cooldown || RESEND_COOLDOWN);
+          showOtpModal(json.phone_masked, phone.value, function() {
+            otpVerified = true;
+            form.submit();
+          });
+        } else {
+          alert(json.error || 'Failed to send OTP');
+        }
+      })
+      .catch(function() {
+        alert('Failed to send verification code. Please try again.');
+      });
+    }, true); // Use capture to intercept before OpenCart's handler
+  })();
+  {% endif %}
+
+  {% if mode == 'login' %}
+  // =============================================
+  // LOGIN OTP FLOW
+  // =============================================
+  function resendForLogin() {
+    document.getElementById('kwtsms-otp-auth-resend-btn').disabled = true;
+
+    fetch(OTP_LOGIN_SEND_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      if (json.success) {
+        setStatus('info', 'Code sent to ' + json.phone_masked);
+        startResendTimer(json.resend_cooldown || RESEND_COOLDOWN);
+      } else if (json.error) {
+        setStatus('danger', json.error);
+        document.getElementById('kwtsms-otp-auth-resend-btn').disabled = false;
+      }
+    })
+    .catch(function() {
+      setStatus('danger', 'Failed to send code.');
+      document.getElementById('kwtsms-otp-auth-resend-btn').disabled = false;
+    });
+  }
+
+  (function initLoginOtp() {
+    var form = document.querySelector('form[action*="login"]');
+    if (!form) return;
+
+    var otpVerified = false;
+
+    form.addEventListener('submit', function(e) {
+      if (otpVerified) return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      var formData = new FormData(form);
+
+      // First, submit login normally via AJAX
+      fetch(form.action, {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(json) {
+        if (json.redirect) {
+          // Login succeeded, now check if OTP is needed
+          fetch(OTP_LOGIN_SEND_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(otpJson) {
+            if (otpJson.skip) {
+              // No phone or OTP not possible, redirect directly
+              window.location = json.redirect;
+            } else if (otpJson.success) {
+              startResendTimer(otpJson.resend_cooldown || RESEND_COOLDOWN);
+              showOtpModal(otpJson.phone_masked, otpJson.phone, function() {
+                otpVerified = true;
+                window.location = json.redirect;
+              });
+
+              // On modal close without verifying, log out
+              document.getElementById('kwtsms-otp-auth-modal').addEventListener('hidden.bs.modal', function handler() {
+                document.getElementById('kwtsms-otp-auth-modal').removeEventListener('hidden.bs.modal', handler);
+                // If not verified yet, logout
+                if (!otpVerified) {
+                  fetch(OTP_LOGOUT_URL);
+                  window.location.reload();
+                }
+              });
+            } else {
+              // Can't send OTP, let them in
+              window.location = json.redirect;
+            }
+          })
+          .catch(function() {
+            // Error sending OTP, let them in
+            window.location = json.redirect;
+          });
+        } else if (json.error) {
+          // Login failed, show errors
+          var existing = form.querySelector('.alert-danger');
+          if (existing) existing.remove();
+
+          var msg = '';
+          if (typeof json.error === 'object') {
+            msg = json.error.warning || Object.values(json.error).join(' ');
+          } else {
+            msg = json.error;
+          }
+
+          if (msg) {
+            var alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible';
+            alertDiv.textContent = msg;
+            var closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close';
+            closeBtn.setAttribute('data-bs-dismiss', 'alert');
+            alertDiv.appendChild(closeBtn);
+            form.prepend(alertDiv);
+          }
+        }
+      })
+      .catch(function() {
+        // Network error, try normal submit
+        otpVerified = true;
+        form.submit();
+      });
+    }, true);
+  })();
+  {% endif %}
+})();
+</script>

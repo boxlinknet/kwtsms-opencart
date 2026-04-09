@@ -121,6 +121,10 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $data['module_kwtsms_otp_max_per_ip'] = $this->config->get('module_kwtsms_otp_max_per_ip') ?: 10;
         $data['module_kwtsms_otp_resend_cooldown'] = $this->config->get('module_kwtsms_otp_resend_cooldown') ?: 60;
 
+        // Login & Registration OTP settings
+        $data['module_kwtsms_otp_register_enabled'] = $this->config->get('module_kwtsms_otp_register_enabled');
+        $data['module_kwtsms_otp_login_enabled'] = $this->config->get('module_kwtsms_otp_login_enabled');
+
         // Reset template URL
         $data['reset_template_url'] = $this->url->link('extension/kwtsms/module/kwtsms.resetTemplate', 'user_token=' . $this->session->data['user_token']);
 
@@ -209,6 +213,24 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             'sort_order'  => 0,
         ]);
 
+        $this->model_setting_event->addEvent([
+            'code'        => 'kwtsms_otp_register',
+            'description' => 'kwtSMS: Inject OTP verification into registration page',
+            'trigger'     => 'catalog/view/account/register/after',
+            'action'      => 'extension/kwtsms/module/kwtsms_otp.injectRegister',
+            'status'      => 1,
+            'sort_order'  => 0,
+        ]);
+
+        $this->model_setting_event->addEvent([
+            'code'        => 'kwtsms_otp_login',
+            'description' => 'kwtSMS: Inject OTP verification into login page',
+            'trigger'     => 'catalog/view/account/login/after',
+            'action'      => 'extension/kwtsms/module/kwtsms_otp.injectLogin',
+            'status'      => 1,
+            'sort_order'  => 0,
+        ]);
+
         // 3. Add permissions for sub-controllers
         $this->load->model('user/user_group');
 
@@ -282,6 +304,8 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
             'module_kwtsms_otp_max_per_phone'               => 5,
             'module_kwtsms_otp_max_per_ip'                  => 10,
             'module_kwtsms_otp_resend_cooldown'             => 60,
+            'module_kwtsms_otp_register_enabled'            => 0,
+            'module_kwtsms_otp_login_enabled'               => 0,
             'module_kwtsms_abandoned_cart_enabled'          => 0,
             'module_kwtsms_abandoned_cart_delay'            => 60,
             'module_kwtsms_abandoned_cart_max_per_run'      => 50,
@@ -309,6 +333,8 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
         $this->model_setting_event->deleteEventByCode('kwtsms_new_review');
         $this->model_setting_event->deleteEventByCode('kwtsms_return_request');
         $this->model_setting_event->deleteEventByCode('kwtsms_cod_otp');
+        $this->model_setting_event->deleteEventByCode('kwtsms_otp_register');
+        $this->model_setting_event->deleteEventByCode('kwtsms_otp_login');
 
         // 3. Remove cron tasks
         $this->load->model('setting/cron');
@@ -409,6 +435,8 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
 
             // OTP settings
             $settings['module_kwtsms_cod_otp_enabled'] = isset($this->request->post['module_kwtsms_cod_otp_enabled']) ? (int)$this->request->post['module_kwtsms_cod_otp_enabled'] : 0;
+            $settings['module_kwtsms_otp_register_enabled'] = isset($this->request->post['module_kwtsms_otp_register_enabled']) ? (int)$this->request->post['module_kwtsms_otp_register_enabled'] : 0;
+            $settings['module_kwtsms_otp_login_enabled'] = isset($this->request->post['module_kwtsms_otp_login_enabled']) ? (int)$this->request->post['module_kwtsms_otp_login_enabled'] : 0;
             $settings['module_kwtsms_otp_length'] = isset($this->request->post['module_kwtsms_otp_length']) ? max(4, min(8, (int)$this->request->post['module_kwtsms_otp_length'])) : 6;
             $settings['module_kwtsms_otp_expiry'] = isset($this->request->post['module_kwtsms_otp_expiry']) ? max(1, (int)$this->request->post['module_kwtsms_otp_expiry']) : 5;
             $settings['module_kwtsms_otp_max_per_phone'] = isset($this->request->post['module_kwtsms_otp_max_per_phone']) ? max(1, (int)$this->request->post['module_kwtsms_otp_max_per_phone']) : 5;

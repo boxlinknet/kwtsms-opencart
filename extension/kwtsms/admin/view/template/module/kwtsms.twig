@@ -372,6 +372,34 @@
                   <input type="number" name="module_kwtsms_otp_resend_cooldown" value="{{ module_kwtsms_otp_resend_cooldown }}" class="form-control" min="30" max="300" style="max-width: 120px;" />
                 </div>
               </div>
+
+              {# Login & Registration OTP #}
+              <hr class="my-4"/>
+              <h5 style="color: #FFA200;"><i class="fa-solid fa-right-to-bracket"></i> {{ text_otp_auth_settings }}</h5>
+
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label fw-bold">{{ entry_otp_register_enabled }}</label>
+                <div class="col-sm-9">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_kwtsms_otp_register_enabled" value="0">
+                    <input type="checkbox" name="module_kwtsms_otp_register_enabled" value="1" class="form-check-input" id="input-otp-register-enabled"
+                      {% if module_kwtsms_otp_register_enabled %}checked{% endif %} />
+                    <label class="form-check-label" for="input-otp-register-enabled">{{ help_otp_register_enabled }}</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label fw-bold">{{ entry_otp_login_enabled }}</label>
+                <div class="col-sm-9">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_kwtsms_otp_login_enabled" value="0">
+                    <input type="checkbox" name="module_kwtsms_otp_login_enabled" value="1" class="form-check-input" id="input-otp-login-enabled"
+                      {% if module_kwtsms_otp_login_enabled %}checked{% endif %} />
+                    <label class="form-check-label" for="input-otp-login-enabled">{{ help_otp_login_enabled }}</label>
+                  </div>
+                </div>
+              </div>
             </form>
           </div>
         </div>

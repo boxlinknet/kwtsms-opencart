@@ -15,3 +15,7 @@ $_['text_otp_expired']        = 'Code expired. Please request a new code.';
 $_['text_otp_rate_limit']     = 'Too many requests. Please try again later.';
 $_['text_otp_failed']         = 'Too many failed attempts. Please request a new code.';
 $_['text_otp_send_failed']    = 'Failed to send verification code. Please try again.';
+
+// Auth OTP
+$_['text_otp_register_title'] = 'Phone Verification';
+$_['text_otp_login_title']    = 'Login Verification';

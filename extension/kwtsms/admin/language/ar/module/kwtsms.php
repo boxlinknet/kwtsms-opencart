@@ -163,6 +163,13 @@ $_['entry_otp_resend_cooldown']  = 'فترة انتظار إعادة الإرس�
 $_['text_otp_sender_warning']    = 'لضمان توصيل رمز التحقق، استخدم معرف مرسل معاملات. معرفات المرسل الترويجية قد تحجب بفلتر عدم الإزعاج.';
 $_['text_otp_settings']          = 'التحقق بالرمز عند الدفع عند الاستلام';
 
+// Login & Registration OTP
+$_['text_otp_auth_settings']         = 'التحقق بالرمز عند تسجيل الدخول والتسجيل';
+$_['entry_otp_register_enabled']     = 'التحقق عند التسجيل';
+$_['help_otp_register_enabled']      = 'طلب التحقق من رقم الهاتف عند تسجيل حساب جديد.';
+$_['entry_otp_login_enabled']        = 'التحقق عند تسجيل الدخول';
+$_['help_otp_login_enabled']         = 'طلب التحقق من رقم الهاتف عند تسجيل دخول العملاء.';
+
 // Abandoned Cart
 $_['entry_abandoned_cart_enabled']   = 'رسائل السلة المتروكة';
 $_['help_abandoned_cart_enabled']    = 'إرسال تذكيرات للعملاء الذين تركوا منتجات في سلة التسوق.';

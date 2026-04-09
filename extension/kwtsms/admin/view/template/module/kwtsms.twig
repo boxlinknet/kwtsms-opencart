@@ -56,9 +56,9 @@
                 <i class="fa-solid fa-calendar-day"></i> {{ text_today }}
               </div>
               <div class="card-body">
-                <span class="badge" style="background-color: #FFA200; color: #fff;" id="stat-today-sent">{{ text_sms_sent }}: {{ stats_today.sent }}</span>
-                <span class="badge bg-danger" id="stat-today-failed">{{ text_sms_failed }}: {{ stats_today.failed }}</span>
-                <span class="badge bg-secondary" id="stat-today-skipped">{{ text_sms_skipped }}: {{ stats_today.skipped }}</span>
+                <span class="badge fs-6 px-3 py-2" style="background-color: #FFA200; color: #fff;" id="stat-today-sent">{{ text_sms_sent }}: {{ stats_today.sent }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-danger" id="stat-today-failed">{{ text_sms_failed }}: {{ stats_today.failed }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-secondary" id="stat-today-skipped">{{ text_sms_skipped }}: {{ stats_today.skipped }}</span>
               </div>
             </div>
           </div>
@@ -69,9 +69,9 @@
                 <i class="fa-solid fa-calendar-week"></i> {{ text_7_days }}
               </div>
               <div class="card-body">
-                <span class="badge" style="background-color: #FFA200; color: #fff;" id="stat-7days-sent">{{ text_sms_sent }}: {{ stats_7days.sent }}</span>
-                <span class="badge bg-danger" id="stat-7days-failed">{{ text_sms_failed }}: {{ stats_7days.failed }}</span>
-                <span class="badge bg-secondary" id="stat-7days-skipped">{{ text_sms_skipped }}: {{ stats_7days.skipped }}</span>
+                <span class="badge fs-6 px-3 py-2" style="background-color: #FFA200; color: #fff;" id="stat-7days-sent">{{ text_sms_sent }}: {{ stats_7days.sent }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-danger" id="stat-7days-failed">{{ text_sms_failed }}: {{ stats_7days.failed }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-secondary" id="stat-7days-skipped">{{ text_sms_skipped }}: {{ stats_7days.skipped }}</span>
               </div>
             </div>
           </div>
@@ -82,9 +82,9 @@
                 <i class="fa-solid fa-calendar"></i> {{ text_30_days }}
               </div>
               <div class="card-body">
-                <span class="badge" style="background-color: #FFA200; color: #fff;" id="stat-30days-sent">{{ text_sms_sent }}: {{ stats_30days.sent }}</span>
-                <span class="badge bg-danger" id="stat-30days-failed">{{ text_sms_failed }}: {{ stats_30days.failed }}</span>
-                <span class="badge bg-secondary" id="stat-30days-skipped">{{ text_sms_skipped }}: {{ stats_30days.skipped }}</span>
+                <span class="badge fs-6 px-3 py-2" style="background-color: #FFA200; color: #fff;" id="stat-30days-sent">{{ text_sms_sent }}: {{ stats_30days.sent }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-danger" id="stat-30days-failed">{{ text_sms_failed }}: {{ stats_30days.failed }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-secondary" id="stat-30days-skipped">{{ text_sms_skipped }}: {{ stats_30days.skipped }}</span>
               </div>
             </div>
           </div>
@@ -96,7 +96,7 @@
             <div class="card text-center">
               <div class="card-body p-2">
                 <small class="text-muted">{{ text_balance }}</small><br>
-                <strong id="dash-balance">{% if gateway_balance is not null %}{{ gateway_balance }} {{ text_credits }}{% else %}--{% endif %}</strong>
+                <strong id="dash-balance">{% if gateway_balance is not null %}{{ gateway_balance }}{% else %}--{% endif %}</strong>
               </div>
             </div>
           </div>
@@ -1113,8 +1113,8 @@ $(document).ready(function() {
 
           // Update connected state display
           if (json.balance !== undefined && json.balance !== null) {
-            $('#gw-balance').text(json.balance + ' {{ text_credits }}');
-            $('#dash-balance').text(json.balance + ' {{ text_credits }}');
+            $('#gw-balance').text(json.balance);
+            $('#dash-balance').text(json.balance);
           }
           updateSenderIds(json.senderids);
           updateCoverage(json.coverage);
@@ -1186,8 +1186,8 @@ $(document).ready(function() {
           showAlert('success', json.success);
 
           if (json.balance !== undefined && json.balance !== null) {
-            $('#gw-balance').text(json.balance + ' {{ text_credits }}');
-            $('#dash-balance').text(json.balance + ' {{ text_credits }}');
+            $('#gw-balance').text(json.balance);
+            $('#dash-balance').text(json.balance);
           }
           updateSenderIds(json.senderids);
           updateCoverage(json.coverage);

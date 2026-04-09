@@ -94,64 +94,64 @@
         <div class="row">
           <div class="col-lg-2 col-md-4 col-6 mb-3">
             <div class="card text-center">
-              <div class="card-body p-2">
-                <small class="text-muted">{{ text_balance }}</small><br>
-                <strong id="dash-balance">{% if gateway_balance is not null %}{{ gateway_balance }}{% else %}--{% endif %}</strong>
+              <div class="card-body p-3">
+                <div class="text-muted mb-1">{{ text_balance }}</div>
+                <h4 class="mb-0" id="dash-balance">{% if gateway_balance is not null %}{{ gateway_balance }}{% else %}--{% endif %}</h4>
               </div>
             </div>
           </div>
           <div class="col-lg-2 col-md-4 col-6 mb-3">
             <div class="card text-center">
-              <div class="card-body p-2">
-                <small class="text-muted">{{ text_sender_id }}</small><br>
-                <strong id="dash-sender-id">{{ module_kwtsms_sender_id ?: (gateway_configured ? 'KWT-SMS' : '--') }}</strong>
+              <div class="card-body p-3">
+                <div class="text-muted mb-1">{{ text_sender_id }}</div>
+                <h4 class="mb-0" id="dash-sender-id">{{ module_kwtsms_sender_id ?: (gateway_configured ? 'KWT-SMS' : '--') }}</h4>
               </div>
             </div>
           </div>
           <div class="col-lg-2 col-md-4 col-6 mb-3">
             <div class="card text-center">
-              <div class="card-body p-2">
-                <small class="text-muted">{{ text_test_mode }}</small><br>
+              <div class="card-body p-3">
+                <div class="text-muted mb-1">{{ text_test_mode }}</div>
                 {% if module_kwtsms_test_mode %}
-                <span class="badge bg-warning text-dark" id="dash-test-mode">{{ text_on }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-warning text-dark" id="dash-test-mode">{{ text_on }}</span>
                 {% else %}
-                <span class="badge bg-success" id="dash-test-mode">{{ text_off }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-success" id="dash-test-mode">{{ text_off }}</span>
                 {% endif %}
               </div>
             </div>
           </div>
           <div class="col-lg-2 col-md-4 col-6 mb-3">
             <div class="card text-center">
-              <div class="card-body p-2">
-                <small class="text-muted">{{ text_gateway_status }}</small><br>
+              <div class="card-body p-3">
+                <div class="text-muted mb-1">{{ text_gateway_status }}</div>
                 {% if gateway_configured %}
-                <span class="badge bg-success" id="dash-gateway">{{ text_connected }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-success" id="dash-gateway">{{ text_connected }}</span>
                 {% else %}
-                <span class="badge bg-danger" id="dash-gateway">{{ text_disconnected }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-danger" id="dash-gateway">{{ text_disconnected }}</span>
                 {% endif %}
               </div>
             </div>
           </div>
           <div class="col-lg-2 col-md-4 col-6 mb-3">
             <div class="card text-center">
-              <div class="card-body p-2">
-                <small class="text-muted">{{ text_global_status }}</small><br>
+              <div class="card-body p-3">
+                <div class="text-muted mb-1">{{ text_global_status }}</div>
                 {% if module_kwtsms_status %}
-                <span class="badge bg-success" id="dash-enabled">{{ text_yes }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-success" id="dash-enabled">{{ text_enabled }}</span>
                 {% else %}
-                <span class="badge bg-secondary" id="dash-enabled">{{ text_no }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-secondary" id="dash-enabled">{{ text_disabled }}</span>
                 {% endif %}
               </div>
             </div>
           </div>
           <div class="col-lg-2 col-md-4 col-6 mb-3">
             <div class="card text-center">
-              <div class="card-body p-2">
-                <small class="text-muted">{{ text_debug_status }}</small><br>
+              <div class="card-body p-3">
+                <div class="text-muted mb-1">{{ text_debug_status }}</div>
                 {% if module_kwtsms_debug %}
-                <span class="badge bg-warning text-dark" id="dash-debug">{{ text_on }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-warning text-dark" id="dash-debug">{{ text_on }}</span>
                 {% else %}
-                <span class="badge bg-success" id="dash-debug">{{ text_off }}</span>
+                <span class="badge fs-6 px-3 py-2 bg-success" id="dash-debug">{{ text_off }}</span>
                 {% endif %}
               </div>
             </div>

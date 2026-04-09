@@ -216,30 +216,34 @@
                 </div>
               </div>
 
-              {# Admin Paid Order Statuses #}
+              {# Admin Paid Order Statuses - only payment-related statuses #}
               <div class="row mb-3">
                 <label class="col-sm-3 col-form-label">{{ entry_admin_paid_statuses }}</label>
                 <div class="col-sm-9">
                   <small class="form-text text-muted mb-2 d-block">{{ help_admin_paid_statuses }}</small>
                   {% for order_status in order_statuses %}
+                    {% if order_status.name in ['Processing', 'Processed', 'Complete', 'Shipped'] %}
                   <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" name="module_kwtsms_admin_paid_statuses[]" value="{{ order_status.order_status_id }}" id="input-admin-paid-status-{{ order_status.order_status_id }}" {% if order_status.order_status_id in module_kwtsms_admin_paid_statuses %}checked{% endif %}>
                     <label class="form-check-label" for="input-admin-paid-status-{{ order_status.order_status_id }}">{{ order_status.name }}</label>
                   </div>
+                    {% endif %}
                   {% endfor %}
                 </div>
               </div>
 
-              {# Admin Problem Statuses #}
+              {# Admin Problem Statuses - only problem-related statuses #}
               <div class="row mb-3">
                 <label class="col-sm-3 col-form-label">{{ entry_admin_problem_statuses }}</label>
                 <div class="col-sm-9">
                   <small class="form-text text-muted mb-2 d-block">{{ help_admin_problem_statuses }}</small>
                   {% for order_status in order_statuses %}
+                    {% if order_status.name in ['Canceled', 'Denied', 'Failed', 'Refunded', 'Reversed', 'Chargeback'] %}
                   <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" name="module_kwtsms_admin_problem_statuses[]" value="{{ order_status.order_status_id }}" id="input-admin-problem-status-{{ order_status.order_status_id }}" {% if order_status.order_status_id in module_kwtsms_admin_problem_statuses %}checked{% endif %}>
                     <label class="form-check-label" for="input-admin-problem-status-{{ order_status.order_status_id }}">{{ order_status.name }}</label>
                   </div>
+                    {% endif %}
                   {% endfor %}
                 </div>
               </div>

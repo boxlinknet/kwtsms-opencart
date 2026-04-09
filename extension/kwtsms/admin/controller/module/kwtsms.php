@@ -312,15 +312,15 @@ class Kwtsms extends \Opencart\System\Engine\Controller {
 
         // 6. Set default settings
         $defaults = [
-            'module_kwtsms_status'                         => 0,
+            'module_kwtsms_status'                         => 1,
             'module_kwtsms_test_mode'                      => 1,
             'module_kwtsms_country_code'                   => '965',
             'module_kwtsms_sender_id'                      => 'KWT-SMS',
             'module_kwtsms_debug'                          => 0,
             'module_kwtsms_admin_phones'                   => '',
-            'module_kwtsms_customer_statuses'              => '[]',
-            'module_kwtsms_admin_paid_statuses'            => '[]',
-            'module_kwtsms_admin_problem_statuses'         => '[]',
+            'module_kwtsms_customer_statuses'              => '[2,3,5,7]',
+            'module_kwtsms_admin_paid_statuses'            => '[2]',
+            'module_kwtsms_admin_problem_statuses'         => '[7,11,13]',
             'module_kwtsms_template_customer_order_en'     => 'Hi {customer_name}, your order #{order_id} status has been updated to: {order_status}. Thank you for shopping at {store_name}.',
             'module_kwtsms_template_customer_order_ar'     => '{customer_name} مرحبا، تم تحديث حالة طلبك رقم #{order_id} الى: {order_status}. شكرا لتسوقك في {store_name}.',
             'module_kwtsms_template_admin_paid_en'         => 'New paid order #{order_id} from {customer_name}. Total: {order_total}. Date: {date}.',
